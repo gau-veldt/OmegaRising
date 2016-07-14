@@ -1,0 +1,319 @@
+[gd_scene load_steps=53 format=1]
+
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_003.png" type="Texture" id=1]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_004.png" type="Texture" id=2]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_005.png" type="Texture" id=3]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_006.png" type="Texture" id=4]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_004.png" type="Texture" id=5]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_005.png" type="Texture" id=6]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_006.png" type="Texture" id=7]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_004.png" type="Texture" id=8]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_005.png" type="Texture" id=9]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_006.png" type="Texture" id=10]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_007.png" type="Texture" id=11]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_008.png" type="Texture" id=12]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_007.png" type="Texture" id=13]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_008.png" type="Texture" id=14]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_003.png" type="Texture" id=15]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_013.png" type="Texture" id=16]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_014.png" type="Texture" id=17]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_015_015.png" type="Texture" id=18]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_013.png" type="Texture" id=19]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_014.png" type="Texture" id=20]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_015.png" type="Texture" id=21]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_013.png" type="Texture" id=22]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_014.png" type="Texture" id=23]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_015.png" type="Texture" id=24]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_016.png" type="Texture" id=25]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_016_017.png" type="Texture" id=26]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_016.png" type="Texture" id=27]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_017_017.png" type="Texture" id=28]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_001_014.png" type="Texture" id=29]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_001_015.png" type="Texture" id=30]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_000_016.png" type="Texture" id=31]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_000_017.png" type="Texture" id=32]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_001_016.png" type="Texture" id=33]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_001_017.png" type="Texture" id=34]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_002_016.png" type="Texture" id=35]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_002_017.png" type="Texture" id=36]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_003_016.png" type="Texture" id=37]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_003_017.png" type="Texture" id=38]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_002_005.png" type="Texture" id=39]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_002_006.png" type="Texture" id=40]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_002_007.png" type="Texture" id=41]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_003_005.png" type="Texture" id=42]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_003_006.png" type="Texture" id=43]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_003_007.png" type="Texture" id=44]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_004_005.png" type="Texture" id=45]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_004_006.png" type="Texture" id=46]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_004_007.png" type="Texture" id=47]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_003_008.png" type="Texture" id=48]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_003_009.png" type="Texture" id=49]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_004_008.png" type="Texture" id=50]
+[ext_resource path="res://gfx/Saphy - Len Pabin/forest/tile_004_009.png" type="Texture" id=51]
+[ext_resource path="res://gfx/lights/lamp.png" type="Texture" id=52]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="grass" type="Sprite" parent="."]
+
+transform/pos = Vector2( 32, 32 )
+texture = ExtResource( 1 )
+
+[node name="dirt_ul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 72, 32 )
+texture = ExtResource( 2 )
+
+[node name="dirt_um" type="Sprite" parent="."]
+
+transform/pos = Vector2( 112, 32 )
+texture = ExtResource( 3 )
+
+[node name="dirt_ur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 152, 32 )
+texture = ExtResource( 4 )
+
+[node name="dirt_ml" type="Sprite" parent="."]
+
+transform/pos = Vector2( 72, 72 )
+texture = ExtResource( 5 )
+
+[node name="dirt" type="Sprite" parent="."]
+
+transform/pos = Vector2( 112, 72 )
+texture = ExtResource( 6 )
+
+[node name="dirt_mr" type="Sprite" parent="."]
+
+transform/pos = Vector2( 152, 72 )
+texture = ExtResource( 7 )
+
+[node name="dirt_bl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 72, 112 )
+texture = ExtResource( 8 )
+
+[node name="dirt_bm" type="Sprite" parent="."]
+
+transform/pos = Vector2( 112, 112 )
+texture = ExtResource( 9 )
+
+[node name="dirt_br" type="Sprite" parent="."]
+
+transform/pos = Vector2( 152, 112 )
+texture = ExtResource( 10 )
+
+[node name="dirt_iul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 192, 32 )
+texture = ExtResource( 11 )
+
+[node name="dirt_iur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 232, 32 )
+texture = ExtResource( 12 )
+
+[node name="dirt_ibl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 192, 72 )
+texture = ExtResource( 13 )
+
+[node name="dirt_ibr" type="Sprite" parent="."]
+
+transform/pos = Vector2( 232, 72 )
+texture = ExtResource( 14 )
+
+[node name="grass_flower" type="Sprite" parent="."]
+
+transform/pos = Vector2( 32, 72 )
+texture = ExtResource( 15 )
+
+[node name="tgrass_ul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 272, 32 )
+texture = ExtResource( 16 )
+
+[node name="tgrass_um" type="Sprite" parent="."]
+
+transform/pos = Vector2( 312, 32 )
+texture = ExtResource( 17 )
+
+[node name="tgrass_ur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 352, 32 )
+texture = ExtResource( 18 )
+
+[node name="tgrass_ml" type="Sprite" parent="."]
+
+transform/pos = Vector2( 272, 72 )
+texture = ExtResource( 19 )
+
+[node name="tgrass" type="Sprite" parent="."]
+
+transform/pos = Vector2( 312, 72 )
+texture = ExtResource( 20 )
+
+[node name="tgrass_mr" type="Sprite" parent="."]
+
+transform/pos = Vector2( 352, 72 )
+texture = ExtResource( 21 )
+
+[node name="tgrass_bl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 272, 112 )
+texture = ExtResource( 22 )
+
+[node name="tgrass_bm" type="Sprite" parent="."]
+
+transform/pos = Vector2( 312, 112 )
+texture = ExtResource( 23 )
+
+[node name="tgrass_br" type="Sprite" parent="."]
+
+transform/pos = Vector2( 352, 112 )
+texture = ExtResource( 24 )
+
+[node name="tgrass_iul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 392, 32 )
+texture = ExtResource( 25 )
+
+[node name="tgrass_iur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 432, 32 )
+texture = ExtResource( 26 )
+
+[node name="tgrass_ibl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 392, 72 )
+texture = ExtResource( 27 )
+
+[node name="tgrass_ibr" type="Sprite" parent="."]
+
+transform/pos = Vector2( 432, 72 )
+texture = ExtResource( 28 )
+
+[node name="rock1_l" type="Sprite" parent="."]
+
+transform/pos = Vector2( 472, 32 )
+texture = ExtResource( 29 )
+
+[node name="rock1_r" type="Sprite" parent="."]
+
+transform/pos = Vector2( 512, 32 )
+texture = ExtResource( 30 )
+
+[node name="rock2_ul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 552, 32 )
+texture = ExtResource( 31 )
+
+[node name="rock2_ur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 592, 32 )
+texture = ExtResource( 32 )
+
+[node name="rock2_bl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 552, 73 )
+texture = ExtResource( 33 )
+
+[node name="rock2_br" type="Sprite" parent="."]
+
+transform/pos = Vector2( 592, 72 )
+texture = ExtResource( 34 )
+
+[node name="rock3_ul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 472, 72 )
+texture = ExtResource( 35 )
+
+[node name="rock3_ur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 512, 72 )
+texture = ExtResource( 36 )
+
+[node name="rock3_bl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 472, 113 )
+texture = ExtResource( 37 )
+
+[node name="rock3_br" type="Sprite" parent="."]
+
+transform/pos = Vector2( 512, 112 )
+texture = ExtResource( 38 )
+
+[node name="dgrass_ul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 72, 152 )
+texture = ExtResource( 39 )
+
+[node name="dgrass_um" type="Sprite" parent="."]
+
+transform/pos = Vector2( 112, 152 )
+texture = ExtResource( 40 )
+
+[node name="dgrass_ur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 152, 152 )
+texture = ExtResource( 41 )
+
+[node name="dgrass_ml" type="Sprite" parent="."]
+
+transform/pos = Vector2( 72, 192 )
+texture = ExtResource( 42 )
+
+[node name="dgrass" type="Sprite" parent="."]
+
+transform/pos = Vector2( 112, 192 )
+texture = ExtResource( 43 )
+
+[node name="dgrass_mr" type="Sprite" parent="."]
+
+transform/pos = Vector2( 152, 192 )
+texture = ExtResource( 44 )
+
+[node name="dgrass_bl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 72, 232 )
+texture = ExtResource( 45 )
+
+[node name="dgrass_bm" type="Sprite" parent="."]
+
+transform/pos = Vector2( 112, 232 )
+texture = ExtResource( 46 )
+
+[node name="dgrass_br" type="Sprite" parent="."]
+
+transform/pos = Vector2( 152, 232 )
+texture = ExtResource( 47 )
+
+[node name="dgrass_iul" type="Sprite" parent="."]
+
+transform/pos = Vector2( 192, 152 )
+texture = ExtResource( 48 )
+
+[node name="dgrass_iur" type="Sprite" parent="."]
+
+transform/pos = Vector2( 232, 152 )
+texture = ExtResource( 49 )
+
+[node name="dgrass_ibl" type="Sprite" parent="."]
+
+transform/pos = Vector2( 192, 192 )
+texture = ExtResource( 50 )
+
+[node name="dgrass_ibr" type="Sprite" parent="."]
+
+transform/pos = Vector2( 232, 192 )
+texture = ExtResource( 51 )
+
+[node name="lamp" type="Sprite" parent="."]
+
+transform/pos = Vector2( 632, 32 )
+texture = ExtResource( 52 )
+offset = Vector2( 16, 16 )
+
+
