@@ -1,4 +1,3 @@
-
 extends Node2D
 
 #  The lobby is an autoload singleton where

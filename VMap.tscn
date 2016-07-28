@@ -7,12 +7,12 @@
 [node name="VMap" type="Node2D"]
 
 script/script = ExtResource( 1 )
-lightLevel = 0.75
-lightVariance = 0.15
+tileSize = 32
+quadrantSize = 128
 
 [node name="lower" type="Node2D" parent="."]
 
-[node name="0000,0000" type="TileMap" parent="lower"]
+[node name="00000,00000" type="TileMap" parent="lower"]
 
 mode = 0
 tile_set = ExtResource( 2 )
@@ -32,7 +32,7 @@ tile_data = IntArray( -65538, 0, -65537, 0, -131072, 0, -131071, 0, -131070, 0, 
 
 [node name="mid_lower" type="Node2D" parent="."]
 
-[node name="0000,0000" type="TileMap" parent="mid_lower"]
+[node name="00000,00000" type="TileMap" parent="mid_lower"]
 
 mode = 0
 tile_set = ExtResource( 2 )
@@ -52,7 +52,7 @@ tile_data = IntArray( 65557, 34, 65558, 35, 131093, 36, 131094, 37, 131096, 15, 
 
 [node name="mid_upper" type="Node2D" parent="."]
 
-[node name="0000,0000" type="TileMap" parent="mid_upper"]
+[node name="00000,00000" type="TileMap" parent="mid_upper"]
 
 mode = 0
 tile_set = ExtResource( 2 )
@@ -72,7 +72,7 @@ tile_data = IntArray( -1, 51, 262148, 536870963, 524298, 51, 851986, 536870963, 
 
 [node name="upper" type="Node2D" parent="."]
 
-[node name="0000,0000" type="TileMap" parent="upper"]
+[node name="00000,00000" type="TileMap" parent="upper"]
 
 mode = 0
 tile_set = ExtResource( 2 )

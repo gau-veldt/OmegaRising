@@ -4,14 +4,25 @@ extends Node
 # reference to the object lobby
 onready var lobby=get_node("/root/lobby")
 
+onready var server=get_node("Connection")
 onready var dir=Directory.new()
-onready var dayAnim=get_node("Camera/Decoration/DayNightCycle")
+onready var bgm=get_node("bgm")
+onready var focus=get_node("viewpoint")
+onready var camera=focus.get_node("Camera")
+onready var userscreen=camera.get_node("Decoration")
+onready var hud=camera.get_node("Decoration/HUD")
+onready var dlGui=camera.get_node("Decoration/HUD/DL")
+onready var timeGui=camera.get_node("Decoration/HUD/Time")
+onready var dayAnim=camera.get_node("Decoration/DayNightCycle")
+onready var world_over=get_node("Overworld")
+onready var world_rgn=get_node("Regional")
+
+var udp=PacketPeerUDP.new()
 
 # asset related vars
 var assetManifest={}
 const dl_head_size=25
 const mfFile="user://manifest"
-var server=StreamPeerTCP.new()
 var svrManifest={}
 
 func loadManifest():
@@ -73,7 +84,6 @@ func setWorldTime(time):
 		enableLights(false)
 	else:
 		enableLights(true)
-	
 
 func initialize_dir(path):
 	# creates directory in path if it doesn't exist
@@ -86,67 +96,308 @@ func initialize_dir(path):
 	else:
 		return OK
 
-var buf
-var head
-var blk_size
-var dl
-var as
+func leftmost(raw,amt):
+	# return new rawarray that is leftmost bytes of raw
+	if amt>raw.size():
+		amt=raw.size()
+	if amt<1:
+		amt=0
+	raw.resize(amt)
+	return raw
+
+func left_delete(raw,amt):
+	# deletes amt bytes from beginning of rawarray
+	if amt>=raw.size():
+		raw.resize(0)
+		return raw
+	if amt<=0:
+		# nothing to do
+		return raw
+	#
+	# *** THIS IS A HACK ***
+	# We need a subarray (slice) operation to do this properly
+	# This hack will copy the entire data three times!!! O(N)
+	# as RawArray's copy when modified.
+	# Alas this hack is still faster than scriptlooping to
+	# left-delete using .remove() and having the data copied on
+	# each pass through the loop! O(N^2+N) (for a mere 10 KB
+	# of data scriptlooping results in 50 MB!!! of wasted copying,
+	# whereas this hack only copies 30K)
+	#
+	raw.invert()
+	raw.resize(raw.size()-amt)
+	raw.invert()
+	return raw
+
+func find_in_raw(haystack,needle):
+	for i in range(haystack.size()):
+		if haystack[i]==needle:
+			return i
+	return -1
+
+var serverExpect=[]
+var serverFIFO=RawArray()
+
+const lineExpectors=["manifest","time"]
+
+var ordRaw=RawArray([0])
+var serverParse=""
+var intExpect=0
+var fh
+var blk_cur
+var blk_cur_size
+var blk_total
+var blk_data_done
+var blk_data_total
+var blk_data=RawArray()
+func onRecv(srvr,data):
+	serverFIFO.append_array(data)
+	var expecting=serverExpect[0]
+
+	var scanning=true
+	var success
+	while scanning:
+		success=0
+		if expecting in lineExpectors:
+			# results types expecting a string
+			var where=find_in_raw(serverFIFO,10)
+			if where>0:
+				serverParse=""
+				for i in range(where+1):
+					ordRaw.set(0,serverFIFO[i])
+					serverParse+=ordRaw.get_string_from_utf8()
+				serverFIFO=left_delete(serverFIFO,where+1)
+				processResult(expecting,serverParse)
+				expecting=""
+				serverExpect.pop_front()
+				if serverExpect.size()>0:
+					success+=1
+					expecting=serverExpect[0]
+
+		if expecting=="head":
+			if serverFIFO.size()>=dl_head_size:
+				success+=1
+				serverExpect.pop_front()
+				serverParse=""
+				for i in range(dl_head_size):
+					ordRaw.set(0,serverFIFO[i])
+					serverParse+=ordRaw.get_string_from_ascii()
+				serverFIFO=left_delete(serverFIFO,dl_head_size)
+				blk_cur=int(serverParse.substr(5,6))
+				if blk_cur==0:
+					# initial 0% block notification
+					onBlockNotify(blk_cur,blk_total,blk_data_done,blk_data_total)
+				blk_total=int(serverParse.substr(12,6))
+				blk_cur_size=int(serverParse.substr(19,5))
+				serverExpect.append(str(blk_cur_size))
+				expecting=serverExpect[0]
+
+		intExpect=int(expecting)
+		if intExpect>0:
+			blk_cur_size=intExpect
+			if serverFIFO.size()>=blk_cur_size:
+				expecting=""
+				serverExpect.pop_front()
+				blk_data_done+=blk_cur_size
+				blk_data.append_array(leftmost(serverFIFO,blk_cur_size))
+				serverFIFO=left_delete(serverFIFO,blk_cur_size)
+				onBlockNotify(blk_cur,blk_total,blk_data_done,blk_data_total)
+				if blk_cur<blk_total:
+					success+=1
+					serverExpect.append("blkeol")
+					expecting=serverExpect[0]
+				else:
+					success+=1
+					serverExpect.append("lasteol")
+					processDownload(blk_data,dlFile)
+					blk_data.resize(0)
+
+		if expecting=="blkeol":
+			if serverFIFO.size()>=2:
+				success+=1
+				expecting=""
+				serverFIFO=left_delete(serverFIFO,2)
+				serverExpect.pop_front()
+				serverExpect.append("head")
+				expecting=serverExpect[0]
+
+		if expecting=="lasteol":
+			if serverFIFO.size()>=2:
+				success+=1
+				expecting=""
+				serverFIFO=left_delete(serverFIFO,2)
+				serverExpect.pop_front()
+				if serverExpect.size()>0:
+					expecting=serverExpect[0]
+				else:
+					expecting=""
+
+		if success==0:
+			scanning=false
+
+func onConnected(srvr):
+	dlGui.set_text("Connected.")
+	#serverExpect.append("time")
+	#server.writestr("time\r\n")
+	serverExpect.append("manifest")
+	server.writestr("manifest\r\n")
+
+func onConnFail():
+	dlGui.set_text("Failed to connect to server.")
+
+var dlFile=""
+func start_download(name):
+	dlFile=name
+	blk_cur=0
+	blk_cur_size=0
+	blk_total=0
+	blk_data_done=0
+	blk_data_total=svrManifest[name]['size']
+	blk_data.resize(0)
+	serverExpect.append("head")
+	server.writestr("get %s\r\n" % dlFile)
+
+var assetsReady=false
+var patch_todo=[]
+func processResult(type,result):
+
+	if type=='time':
+		var worldTime=int(result)
+		setWorldTime(worldTime)
+
+	if type=='manifest':
+		svrManifest.parse_json(result)
+		var mfInfo
+		var cliHash
+		var cliFile=File.new()
+		var srvHash
+		var file
+		for each in svrManifest:
+			file="user://%s" % each
+			mfInfo=svrManifest[each]
+			srvHash=mfInfo['hash']
+			if cliFile.file_exists(file):
+				cliHash=cliFile.get_sha256(file)
+			else:
+				cliHash="".sha256_text()
+			if cliHash!=srvHash:
+				patch_todo.append(each)
+		if patch_todo.size()==0:
+			dlGui.set_text("Game is up to date.")
+			server.writestr("quit\r\n")
+			assetsReady=true
+		else:
+			start_download(patch_todo[0])
+
+func processDownload(data,name):
+	var sz=data.size()
+	dlGui.set_text("Downloaded %0.02f KB of data" % [sz/1024.0])
+	var f=File.new()
+	f.open("user://"+name,File.WRITE)
+	f.store_buffer(data)
+	f.close()
+	patch_todo.pop_front()
+	if patch_todo.size()==0:
+		server.writestr("quit\r\n")
+		assetsReady=true
+		dlGui.set_text("Patching finished.")
+	else:
+		start_download(patch_todo[0])
+
+func onBlockNotify(bCur,bTot,dataCur,dataTot):
+	# when block recevied
+	# perhaps print progress bar or something
+	var prog=dlFile+" "
+	var cur=int(30*dataCur/dataTot)
+	for i in range(cur):
+		prog+="#"
+	for i in range(30-cur):
+		prog+="="
+	dlGui.set_text(prog)
+
+func onMapLoadChunk(quadCode,lyr,map,curVM):
+	print("Load %s to layer[%d]: %s" % [quadCode,lyr,map])
+
+var c_nonce
+var s_nonce
+var sendSeq=1
+var recvSeq=0
+var sessId=0
+func onPacket(frame):
+	var msg=frame['data']
+	if msg.has('oper'):
+		var op=msg['oper']
+
+		if op=='report_world_time':
+			setWorldTime(msg['time'])
+
+		if op=='report_session':
+			sessId=msg['id']
+			recvSeq=msg['seq']
+			s_nonce=msg['snonce']
+
 var processState={}
+var bgm_file=null
+var fsDebounce=false
+var startWorld=false
+var startSession=false
+var frame={}
+var timeSync=0
 func _process(delta):
-	if processState.has('quitting'):
+
+	if processState.has('quitting') or \
+		Input.is_action_pressed("user_quit"):
 		get_tree().quit()
 
-	if processState.has('dl'):
-		dl=processState['dl']
-		if !dl.has('state'):
-			dl['state']='head'
-			dl['elapsed']=0.0
-			dl['xfer_tot']=0
-			dl['gui']=get_node("Camera/Decoration/HUD/DL")
+	if Input.is_action_pressed("fullscreen_toggle") and !fsDebounce:
+		fsDebounce=true
+		if OS.is_window_fullscreen():
+			OS.set_window_fullscreen(false)
 		else:
-			dl['elapsed']+=delta
-		if dl['state']=='head':
-			if server.get_available_bytes()>=dl_head_size:
-				head=server.get_string(dl_head_size)
-				dl['cur']=int(head.substr(5,6))
-				dl['last']=int(head.substr(12,6))
-				dl['bsize']=int(head.substr(19,5))
-				dl['state']='blk'
-		if dl['state']=='blk':
-			blk_size=dl['bsize']
-			if server.get_available_bytes()>=blk_size:
-				dl['xfer_tot']+=blk_size
-				buf=server.get_data(blk_size)
-				dl['file'].seek_end()
-				dl['file'].store_buffer(buf[1])
-				dl['state']='eol'
-				dl['gui'].set_text("%06d/%06d (%05d) %03d%%" % \
-							       [dl['cur'],dl['last'], blk_size, \
-								   int(100.0*dl['cur']/dl['last'])])
-		if dl['state']=='eol':
-			if server.get_available_bytes()>=2:
-				server.get_string(2)
-				if dl['cur']==dl['last']:
-					dl['state']='done'
-				else:
-					dl['state']='head'
-		if dl['state']=='done':
-			dl['gui'].set_text("%s: %0.2f KB in %0.2f seconds (%0.2f KB/sec)" % [\
-								dl['name'],dl['xfer_tot']/1024.0,dl['elapsed'],\
-								(dl['xfer_tot']/1024.0)/dl['elapsed']])
-			dl['state']='dead'
-			server.put_utf8_string("quit\r\n")
-			server.disconnect()
-			var fnm="user://"+dl['name']
-			as=ResourceLoader.load(fnm)
-			get_node("bgm").set_stream(as)
-			get_node("bgm").play()
-			dl=null
-			processState.erase('dl')
+			OS.set_window_fullscreen(true)
+	if !Input.is_action_pressed("fullscreen_toggle"):
+		fsDebounce=false
+
+	timeSync-=delta
+	if timeSync<0:
+		timeSync=15
+		udp.put_var({'oper':'get_time'})
+
+	while udp.get_available_packet_count()>0:
+		frame.clear()
+		frame['data']=udp.get_var()
+		frame['addr']=udp.get_packet_ip()
+		frame['port']=udp.get_packet_port()
+		onPacket(frame)
+
+	if assetsReady:
+		
+		if !startSession:
+			startSession=true
+			c_nonce=randi()
+			udp.put_var({
+				'oper'		:	'begin',
+				'cnonce'	:	c_nonce
+			})
+
+		if !startWorld:
+			startWorld=true
+			camera.set_zoom(Vector2(1,1))
+			userscreen.set_scale(Vector2(1,1))
+			currentMap.recenter(0,0)
+			world_over.set_hidden(false)
+			world_rgn.set_hidden(false)
+			timeGui.set_hidden(false)
+
+		if bgm_file==null:
+			bgm_file=load("user://bgm/concert.ogg")
+			bgm.set_stream(bgm_file)
+			bgm.play()
 
 func _ready():
-	# Turn on _process
 	set_process(true)
+	OS.set_window_title("Omega Rising")
+
 	# Make sure content dirs exist
 	var e1=initialize_dir("user://world")
 	var e2=initialize_dir("user://world/overworld")
@@ -162,31 +413,12 @@ func _ready():
 		processState['quitting']=true
 
 	currentMap=get_node("Overworld/vmap")
-	setWorldTime(0*60) # 0700 (7 AM)
-	
-	var inp=""
-	var ich=""
-	var dl
-	var dfile
-	var err=-1
-	print("Connecting to server...")
-	err=server.connect("127.0.0.1",4000)
-	if err==OK:
-		print("Connected.")
-		server.put_utf8_string("manifest\r\n")
-		while ich!='\n':
-			ich=server.get_string(1)
-			inp+=ich
-		svrManifest.parse_json(inp)
-		dfile=svrManifest.keys()[0]
-		processState['dl']={}
-		dl=processState['dl']
-		dl['file']=File.new()
-		dl['file'].open("user://%s" % dfile, File.WRITE)
-		dl['cur']=0
-		dl['last']=-1
-		dl['name']=dfile
-		server.put_utf8_string("get %s\r\n" % dfile)
-	else:
-		# connect failed, no server
-		print("Connect Failed (err=%d)" % err)
+
+	dlGui.set_text("Connecting to server...")
+	server.connectToPeer("127.0.0.1",4000)
+	udp.set_send_address("127.0.0.1",4000)
+	udp.listen(4001)
+
+	timeGui.set_hidden(true)
+	world_over.set_hidden(true)
+	world_rgn.set_hidden(true)
