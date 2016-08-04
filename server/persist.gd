@@ -78,8 +78,8 @@ func reconstitute(uuid):
 	var file=File.new()
 	var err=file.open(base.plus_file(uuid))
 	if err==OK:
-		type=file.get_line()
-		data={}.parse_json(file.get_line())
+		var type=file.get_line()
+		var data={}.parse_json(file.get_line())
 		var ob=factory[type].instance()
 		ob.set_name(uuid)
 		ob.deserialize(data)
