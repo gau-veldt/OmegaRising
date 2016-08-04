@@ -15,18 +15,6 @@ func validate_dir():
 	if !d.dir_exists(base):
 		d.make_dir(base)
 
-func julian(date):
-	var jd=0
-	for mo in range(date['month']-1):
-		if mo in [0,2,4,6,7,9,11]:
-			jd+=31
-		if mo in [3,5,8,10]:
-			jd+=30
-		if mo in [1]:
-			jd+=29
-	jd+=date['day']
-	return jd
-
 var guid_state={
 	'serial':0,
 	'mac':[int(65535.0*randf()),int(65535.0*randf()),int(65535.0*randf())]
@@ -40,7 +28,7 @@ func generate_guid():
 	var now=OS.get_datetime()
 	var ms=OS.get_ticks_msec()
 	var yr=now['year']-1582
-	var jd=julian(now)
+	var jd=((now['month']-1)*31)+now['day']
 	uid+="%03X-%04X-" % [yr,0x8000+(jd*24)+now['hour']]
 	var msm=now['minute']
 	msm=(msm*60)+now['second']
@@ -75,6 +63,9 @@ func populate_factory():
 
 # cache of modified objects to write on next call to save()
 var modified={}
+
+func flag_unsaved(ob):
+	modified(ob.get_name())=ob
 
 func spawn(type):
 	var uuid=generate_guid()
