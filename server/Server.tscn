@@ -182,6 +182,8 @@ script/script = ExtResource( 2 )
 
 [node name="sessions" type="Node" parent="."]
 
+[node name="index" type="Node" parent="."]
+
 [connection signal="peerMessage" from="." to="Protocol" method="onPeerMessage"]
 
 [connection signal="protoCommand" from="." to="Protocol" method="onProtoCommand"]

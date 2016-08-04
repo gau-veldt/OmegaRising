@@ -61,9 +61,23 @@ func populate_factory():
 				factory[base]=load("res://factory/%s" % file)
 			file=dir.get_next()
 
+#
+#  Object indexing
+#
+onready var index=get_node("/root/Server/index")
+var index_bytype={}
+var index_all={}
+func index_object(uuid,type,ob):
+	if !(type in index_bytype):
+		var node=Node.new()
+		node.set_parent(index)
+		node.set_name(type)
+		index_bytype[type]=node
+	ob.set_parent(index_bytype[type])
+	index_all[uuid]=ob
+
 # cache of modified objects to write on next call to save()
 var modified={}
-
 func flag_unsaved(ob):
 	modified(ob.get_name())=ob
 
@@ -71,6 +85,7 @@ func spawn(type):
 	var uuid=generate_guid()
 	var ob=factory[type].instance()
 	ob.set_name(uuid)
+	index_object(uuid,type,ob)
 	modified[uuid]=ob
 	return ob
 
@@ -82,6 +97,7 @@ func reconstitute(uuid):
 		var data={}.parse_json(file.get_line())
 		var ob=factory[type].instance()
 		ob.set_name(uuid)
+		index_object(uuid,type,ob)
 		ob.deserialize(data)
 		return ob
 	return null
@@ -104,3 +120,4 @@ func save():
 func _ready():
 	populate_factory()
 	validate_dir()
+
