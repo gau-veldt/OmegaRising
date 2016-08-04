@@ -91,7 +91,7 @@ func reconstitute(uuid):
 		data={}.parse_json(file.get_line())
 		var ob=factory[type].instance()
 		ob.set_name(uuid)
-		ob.restore(data)
+		ob.deserialize(data)
 		return ob
 	return null
 
@@ -99,9 +99,15 @@ func save():
 	# persists all changed objects
 	var info={}
 	var ob
+	var data
+	var out=File.new()
 	for each in modified:
 		ob=modified[each]
-		print(each,": ",ob)
+		data=ob.serialize()
+		out.open(base.plus_file(each).File.WRITE)
+		out.store_line(ob.type())
+		out.store_line(data)
+		out.close()
 	modified.clear()
 
 func _ready():
