@@ -2,8 +2,9 @@
 
 [ext_resource path="res://factory/GOB.gd" type="Script" id=1]
 
-[node name="GOB" type="Node2D"]
+[node name="GOB" type="Spatial"]
 
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 script/script = ExtResource( 1 )
 
 

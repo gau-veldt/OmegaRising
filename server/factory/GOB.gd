@@ -1,5 +1,5 @@
 
-extends Node2D
+extends Spatial
 
 #
 #  Base for in-game objects
