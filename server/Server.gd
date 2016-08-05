@@ -189,6 +189,8 @@ func _process(delta):
 				logMessage("%s:%s send keepalive" % [ss['addr'],ss['port']])
 				ss['xcvr'].write(NUL)
 
+	persist.save()
+
 onready var acctList=get_node("Tabber/Account/scroll/AcctEntries")
 func onAcctAction(act):
 	if act==0:			#add
@@ -246,3 +248,4 @@ func _ready():
 	udp.listen(serverPort)
 	
 	set_process(true)
+

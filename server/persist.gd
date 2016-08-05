@@ -70,16 +70,16 @@ var index_all={}
 func index_object(uuid,type,ob):
 	if !(type in index_bytype):
 		var node=Node.new()
-		node.set_parent(index)
 		node.set_name(type)
+		index.add_child(node)
 		index_bytype[type]=node
-	ob.set_parent(index_bytype[type])
+	index_bytype[type].add_child(ob)
 	index_all[uuid]=ob
 
 # cache of modified objects to write on next call to save()
 var modified={}
 func flag_unsaved(ob):
-	modified(ob.get_name())=ob
+	modified[ob.get_name()]=ob
 
 func spawn(type):
 	var uuid=generate_guid()
@@ -91,14 +91,17 @@ func spawn(type):
 
 func reconstitute(uuid):
 	var file=File.new()
-	var err=file.open(base.plus_file(uuid))
+	var err=file.open(base.plus_file(uuid),File.READ)
 	if err==OK:
 		var type=file.get_line()
-		var data={}.parse_json(file.get_line())
+		var raw=file.get_line()
+		var data={}
+		data.parse_json(raw)
 		var ob=factory[type].instance()
 		ob.set_name(uuid)
 		index_object(uuid,type,ob)
 		ob.deserialize(data)
+		modified.erase(uuid)
 		return ob
 	return null
 
@@ -111,7 +114,7 @@ func save():
 	for each in modified:
 		ob=modified[each]
 		data=ob.serialize()
-		out.open(base.plus_file(each).File.WRITE)
+		out.open(base.plus_file(each),File.WRITE)
 		out.store_line(ob.type())
 		out.store_line(data)
 		out.close()
