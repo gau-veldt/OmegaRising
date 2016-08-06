@@ -103,7 +103,12 @@ func onDisconnect(peer):
 	sxcvr.queue_free()
 	sessionState.erase(peer)
 
+onready var acctCtl=get_node("Tabber/Account")
+var oldAcctCount=-1
+var curAcctCount
+
 var frame={}
+onready var acct_idx=persist.get_gob_index('Account')
 func _process(delta):
 	# update world time
 	worldTime+=delta
@@ -119,6 +124,12 @@ func _process(delta):
 	for each in gonzo:
 		frameSession.erase(each)
 		logMessage("Client id %d punted: idle over %d seconds." % [each,idle_timeout])
+
+	# update server account view
+	curAcctCount=acct_idx.get_children().size()
+	if curAcctCount!=oldAcctCount:
+		acctCtl.refresh(acct_idx)
+		oldAcctCount=curAcctCount
 
 	while udp.get_available_packet_count()>0:
 		frame.clear()
@@ -190,25 +201,6 @@ func _process(delta):
 				ss['xcvr'].write(NUL)
 
 	persist.save()
-
-onready var acctList=get_node("Tabber/Account/scroll/AcctEntries")
-func onAcctAction(act):
-	if act==0:			#add
-		var entry=HBoxContainer.new()
-		var leUser=LineEdit.new()
-		var lePass=LineEdit.new()
-		entry.set_hidden(false)
-		leUser.set_hidden(false)
-		lePass.set_hidden(false)
-		var lineNo=1+acctList.get_children().size()
-		entry.set_name("acct%d" % lineNo)
-		leUser.set_custom_minimum_size(Vector2(100,0))
-		lePass.set_custom_minimum_size(Vector2(100,0))
-		leUser.set_text("user%d" % lineNo)
-		lePass.set_text("pass%d" % lineNo)
-		entry.add_child(leUser)
-		entry.add_child(lePass)
-		acctList.add_child(entry)
 
 func _ready():
 	var quitBtn=quitDlg.get_ok()

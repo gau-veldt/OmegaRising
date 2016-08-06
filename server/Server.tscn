@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=1]
+[gd_scene load_steps=4 format=1]
 
 [ext_resource path="res://Server.gd" type="Script" id=1]
-[ext_resource path="res://Protocol.gd" type="Script" id=2]
+[ext_resource path="res://AcctMgr.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Protocol.gd" type="Script" id=3]
 
 [node name="Server" type="Node"]
 
@@ -32,133 +33,22 @@ margin/left = 4.0
 margin/top = 32.0
 margin/right = 4.0
 margin/bottom = 4.0
+syntax_highlighting = false
 show_line_numbers = false
 highlight_all_occurrences = false
 caret/block_caret = false
 caret/caret_blink = false
 caret/caret_blink_speed = 0.65
 
-[node name="Account" type="VBoxContainer" parent="Tabber"]
+[node name="Account" parent="Tabber" instance=ExtResource( 2 )]
 
 visibility/visible = false
 anchor/right = 1
 anchor/bottom = 1
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
 margin/left = 4.0
 margin/top = 32.0
 margin/right = 4.0
 margin/bottom = 4.0
-alignment = 0
-
-[node name="scroll" type="ScrollContainer" parent="Tabber/Account"]
-
-rect/min_size = Vector2( 0, 645 )
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 0.0
-margin/top = 0.0
-margin/right = 40.0
-margin/bottom = 645.0
-scroll/horizontal = true
-scroll/vertical = true
-
-[node name="AcctEntries" type="VBoxContainer" parent="Tabber/Account/scroll"]
-
-rect/min_size = Vector2( 0, 645 )
-focus/ignore_mouse = false
-focus/stop_mouse = false
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 0.0
-margin/top = 0.0
-margin/right = 204.0
-margin/bottom = 645.0
-alignment = 0
-
-[node name="acct1" type="HBoxContainer" parent="Tabber/Account/scroll/AcctEntries"]
-
-focus/ignore_mouse = false
-focus/stop_mouse = false
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 0.0
-margin/top = 0.0
-margin/right = 40.0
-margin/bottom = 40.0
-alignment = 0
-
-[node name="user1" type="LineEdit" parent="Tabber/Account/scroll/AcctEntries/acct1"]
-
-rect/min_size = Vector2( 100, 0 )
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 0.0
-margin/top = 0.0
-margin/right = 100.0
-margin/bottom = 24.0
-placeholder/alpha = 0.6
-focus_mode = 2
-caret/caret_blink = false
-caret/caret_blink_speed = 0.65
-
-[node name="pass1" type="LineEdit" parent="Tabber/Account/scroll/AcctEntries/acct1"]
-
-rect/min_size = Vector2( 100, 0 )
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 0.0
-margin/top = 0.0
-margin/right = 100.0
-margin/bottom = 24.0
-placeholder/alpha = 0.6
-focus_mode = 2
-caret/caret_blink = false
-caret/caret_blink_speed = 0.65
-
-[node name="HSeparator" type="HSeparator" parent="Tabber/Account"]
-
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 0.0
-margin/top = 0.0
-margin/right = 4.0
-margin/bottom = 40.0
-
-[node name="AcctActions" type="HButtonArray" parent="Tabber/Account"]
-
-anchor/right = 1
-anchor/bottom = 1
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 0.0
-margin/top = 0.0
-margin/right = 1034.0
-margin/bottom = 10.0
-button/count = 4
-button/min_button_size = -1.0
-button/align = 0
-button/0/text = "Add"
-button/0/icon = null
-button/1/text = "Del"
-button/1/icon = null
-button/2/text = "Save"
-button/2/icon = null
-button/3/text = "Revert"
-button/3/icon = null
-button/selected = 0
 
 [node name="QuitQuestion" type="ConfirmationDialog" parent="."]
 
@@ -178,7 +68,7 @@ dialog/hide_on_ok = true
 
 [node name="Protocol" type="Node" parent="."]
 
-script/script = ExtResource( 2 )
+script/script = ExtResource( 3 )
 
 [node name="sessions" type="Node" parent="."]
 
@@ -187,7 +77,5 @@ script/script = ExtResource( 2 )
 [connection signal="peerMessage" from="." to="Protocol" method="onPeerMessage"]
 
 [connection signal="protoCommand" from="." to="Protocol" method="onProtoCommand"]
-
-[connection signal="button_selected" from="Tabber/Account/AcctActions" to="." method="onAcctAction"]
 
 

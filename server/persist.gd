@@ -76,6 +76,14 @@ func index_object(uuid,type,ob):
 	index_bytype[type].add_child(ob)
 	index_all[uuid]=ob
 
+func get_gob_index(type):
+	if !(type in index_bytype):
+		var node=Node.new()
+		node.set_name(type)
+		index.add_child(node)
+		index_bytype[type]=node
+	return index_bytype[type]
+
 # cache of modified objects to write on next call to save()
 var modified={}
 func flag_unsaved(ob):
@@ -105,6 +113,23 @@ func reconstitute(uuid):
 		return ob
 	return null
 
+func load_all():
+	# used once when server starts
+	# (loads all objects)
+	var file=File.new()
+	var dir=Directory.new()
+	var name
+	# workaround since dir.open("user://") is bugged
+	var workaround=OS.get_data_dir().plus_file(base.right(7))
+	if dir.open(workaround)!=null:
+		dir.list_dir_begin()
+		name=dir.get_next()
+		while name!="":
+			if name.length()==36:
+				print("Loader got name ",name," [",name.length(),"]")
+				reconstitute(name)
+			name=dir.get_next()
+
 func save():
 	# persists all changed objects
 	var info={}
@@ -120,7 +145,20 @@ func save():
 		out.close()
 	modified.clear()
 
+func nuke(ob):
+	# completely removes object from both disk and memory
+	var type=ob.type()
+	var uuid=ob.get_name()
+	if modified.has(uuid):
+		modified.erase(uuid)
+	if index_all.has(uuid):
+		index_all.erase(uuid)
+	var dir=Directory.new()
+	dir.remove(base.plus_file(uuid))
+	# bytype index entry deleted when child removed from parent
+	ob.queue_free()
+
 func _ready():
 	populate_factory()
 	validate_dir()
-
+	load_all()
