@@ -72,6 +72,102 @@ shortcut = null
 text = "Delete Account"
 flat = false
 
+[node name="noacct_msg" type="Label" parent="."]
+
+anchor/left = 3
+anchor/top = 3
+anchor/right = 3
+anchor/bottom = 3
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 160.0
+margin/top = 48.0
+margin/right = -160.0
+margin/bottom = -16.0
+custom_colors/font_color = Color( 0.627451, 0.627451, 0.627451, 1 )
+custom_colors/font_color_shadow = Color( 0.188235, 0.188235, 0.188235, 1 )
+text = "No Accounts.\n\nCreate an account with [Create Account] button."
+align = 1
+valign = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="acctView" type="Panel" parent="."]
+
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 17.0
+margin/bottom = 30.0
+
+[node name="txt_user" type="Label" parent="acctView"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 16.0
+margin/top = 16.0
+margin/right = 88.0
+margin/bottom = 32.0
+text = "Username:"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="txt_handle" type="Label" parent="acctView"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 257.0
+margin/top = 16.0
+margin/right = 308.0
+margin/bottom = 30.0
+text = "Handle:"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="edit_user" type="LineEdit" parent="acctView"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 92.0
+margin/top = 11.0
+margin/right = 232.0
+margin/bottom = 35.0
+placeholder/alpha = 0.6
+focus_mode = 2
+caret/caret_blink = false
+caret/caret_blink_speed = 0.65
+
+[node name="edit_handle" type="LineEdit" parent="acctView"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 312.0
+margin/top = 11.0
+margin/right = 452.0
+margin/bottom = 35.0
+placeholder/alpha = 0.6
+focus_mode = 2
+caret/caret_blink = false
+caret/caret_blink_speed = 0.65
+
 [connection signal="value_changed" from="select" to="." method="onSelectAcct"]
 
 [connection signal="pressed" from="newAccount" to="." method="onCreateAcct"]

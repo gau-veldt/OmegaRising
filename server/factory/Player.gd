@@ -36,6 +36,9 @@ func on_write(key,val):
 	return false
 
 func _ready():
+	pass
+
+func _spawn():
 	write("name","NoName")
 	write("region",null)
 	write("pos",[0,0,0])

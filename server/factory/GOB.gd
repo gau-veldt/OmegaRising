@@ -51,3 +51,6 @@ func deserialize(data):
 
 func _ready():
 	pass
+
+func _spawn():
+	pass

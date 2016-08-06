@@ -92,6 +92,7 @@ func flag_unsaved(ob):
 func spawn(type):
 	var uuid=generate_guid()
 	var ob=factory[type].instance()
+	ob._spawn()							# set default values
 	ob.set_name(uuid)
 	index_object(uuid,type,ob)
 	modified[uuid]=ob
@@ -106,6 +107,7 @@ func reconstitute(uuid):
 		var data={}
 		data.parse_json(raw)
 		var ob=factory[type].instance()
+		# do NOT call ob._spawn() here
 		ob.set_name(uuid)
 		index_object(uuid,type,ob)
 		ob.deserialize(data)
