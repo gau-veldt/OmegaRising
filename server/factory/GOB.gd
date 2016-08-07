@@ -5,6 +5,7 @@ extends Spatial
 #  Base for in-game objects
 #  Manages persistence
 #
+
 onready var persist=get_node("/root/persist")
 onready var server=get_node("/root/Server")
 
@@ -27,11 +28,17 @@ func read(key):
 
 func on_write(key,value):
 	# override to process state changes
-	return false
+	return _write_GOB(key,value)
 
 func on_read(key):
 	# override to process state queries
+	return _read_GOB(key)
+
+func _read_GOB(key):
 	return [false,null]
+
+func _write_GOB(key,value):
+	return false
 
 func type():
 	return "GOB"
@@ -52,5 +59,8 @@ func deserialize(data):
 func _ready():
 	pass
 
-func _spawn():
+func _spawn_GOB():
 	pass
+
+func _spawn():
+	_spawn_GOB()

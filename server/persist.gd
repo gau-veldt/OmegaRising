@@ -92,9 +92,9 @@ func flag_unsaved(ob):
 func spawn(type):
 	var uuid=generate_guid()
 	var ob=factory[type].instance()
-	ob._spawn()							# set default values
 	ob.set_name(uuid)
 	index_object(uuid,type,ob)
+	ob._spawn()							# set default values
 	modified[uuid]=ob
 	return ob
 
@@ -128,7 +128,6 @@ func load_all():
 		name=dir.get_next()
 		while name!="":
 			if name.length()==36:
-				print("Loader got name ",name," [",name.length(),"]")
 				reconstitute(name)
 			name=dir.get_next()
 
