@@ -240,10 +240,3 @@ func _ready():
 	udp.listen(serverPort)
 	
 	set_process(true)
-
-	if !(persist.index_bytype.has("Player")):
-		var ob=persist.spawn("Player")
-		ob.write("name","CreatedPlayer")
-	else:
-		var ob=persist.index_bytype["Player"].get_child(0)
-		ob.write("name","ReloadedPlayer")

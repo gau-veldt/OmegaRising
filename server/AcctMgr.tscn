@@ -103,9 +103,9 @@ focus/ignore_mouse = false
 focus/stop_mouse = true
 size_flags/horizontal = 2
 size_flags/vertical = 2
-margin/left = 0.0
+margin/left = 1.0
 margin/top = 0.0
-margin/right = 17.0
+margin/right = 16.0
 margin/bottom = 30.0
 
 [node name="txt_user" type="Label" parent="acctView"]
@@ -134,6 +134,42 @@ margin/top = 16.0
 margin/right = 308.0
 margin/bottom = 30.0
 text = "Handle:"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="txt_pass" type="Label" parent="acctView"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 22.0
+margin/top = 50.0
+margin/right = 83.0
+margin/bottom = 64.0
+text = "Password:"
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="txt_acctID" type="Label" parent="acctView"]
+
+anchor/left = 1
+anchor/top = 1
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 404.0
+margin/top = 28.0
+margin/right = 4.0
+margin/bottom = 4.0
+custom_colors/font_color = Color( 0.501961, 0.501961, 0.501961, 1 )
+align = 2
+valign = 2
 percent_visible = 1.0
 lines_skipped = 0
 max_lines_visible = -1
@@ -168,10 +204,89 @@ focus_mode = 2
 caret/caret_blink = false
 caret/caret_blink_speed = 0.65
 
+[node name="edit_pass1" type="LineEdit" parent="acctView"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 92.0
+margin/top = 45.0
+margin/right = 232.0
+margin/bottom = 69.0
+placeholder/alpha = 0.6
+secret = true
+focus_mode = 2
+caret/caret_blink = false
+caret/caret_blink_speed = 0.65
+
+[node name="edit_pass2" type="LineEdit" parent="acctView"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 240.0
+margin/top = 45.0
+margin/right = 380.0
+margin/bottom = 69.0
+placeholder/alpha = 0.6
+secret = true
+focus_mode = 2
+caret/caret_blink = false
+caret/caret_blink_speed = 0.65
+
+[node name="chgUser" type="Button" parent="acctView"]
+
+anchor/left = 1
+anchor/right = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 169.0
+margin/top = 11.0
+margin/right = 9.0
+margin/bottom = 35.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Change User/Handle"
+flat = false
+
+[node name="chgPass" type="Button" parent="acctView"]
+
+anchor/left = 1
+anchor/right = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 169.0
+margin/top = 44.0
+margin/right = 9.0
+margin/bottom = 68.0
+disabled = true
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Change Password"
+flat = false
+
 [connection signal="value_changed" from="select" to="." method="onSelectAcct"]
 
 [connection signal="pressed" from="newAccount" to="." method="onCreateAcct"]
 
 [connection signal="pressed" from="delAccount" to="." method="onDeleteAcct"]
+
+[connection signal="text_changed" from="acctView/edit_user" to="." method="validateUser"]
+
+[connection signal="text_changed" from="acctView/edit_handle" to="." method="validateUser"]
+
+[connection signal="text_changed" from="acctView/edit_pass1" to="." method="validatePassword"]
+
+[connection signal="text_changed" from="acctView/edit_pass2" to="." method="validatePassword"]
+
+[connection signal="pressed" from="acctView/chgUser" to="." method="onChangeName"]
 
 
