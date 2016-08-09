@@ -7,6 +7,7 @@ signal peerMessage(frame)
 var serverVersion=[0,0,1,"prealpha"]
 var sendSize=4096
 var serverPort=4000
+var serverSalt='@@@@@@@@'
 var worldTime=0
 # 24 min is one game day idle
 var idle_timeout=1440
@@ -28,6 +29,13 @@ const NUL=RawArray([0])
 
 func versionString():
 	return "%d.%d.%03d-%s" % serverVersion
+
+var _ascii=RawArray(range(33,127)).get_string_from_ascii()
+func rand_str(sz):
+	var rslt=""
+	for ch in range(sz):
+		rslt+=_ascii[int(rand_range(0,94))]
+	return rslt
 
 func logMessage(msg):
 	var now=OS.get_time()
@@ -230,8 +238,10 @@ func _ready():
 	var err=cfg.load("user://server.ini")
 	sendSize=cfg.get_value("BGDownload","block_size",4096)
 	serverPort=cfg.get_value("Server","port",4000)
+	serverSalt=cfg.get_value("Server","salt",rand_str(8))
 	cfg.set_value("BGDownload","block_size",sendSize)
 	cfg.set_value("Server","port",serverPort)
+	cfg.set_value("Server","salt",serverSalt)
 	err=cfg.save("user://server.ini")
 	logMessage("Xfer block size is "+str(sendSize))
 

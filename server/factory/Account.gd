@@ -3,7 +3,10 @@ extends "GOB.gd"
 
 var username
 var handle
+var email
+var emailVfy
 var password
+var allowed_ip
 var characters
 
 func type():
@@ -22,10 +25,16 @@ func _read_Account(key):
 			return [true,username]
 		if key=="handle":
 			return [true,handle]
+		if key=="email":
+			return [true,email]
+		if key=="email_vfy":
+			return [true,emailVfy]
 		if key=="password":
 			return [true,password]
 		if key=="characters":
 			return [true,characters]
+		if key=="allowed_ip":
+			return [true,allowed_ip]
 		return [false,null]
 	else:
 		return baserc
@@ -39,11 +48,20 @@ func _write_Account(key,val):
 		if key=="handle":
 			handle=val
 			return true
+		if key=="email":
+			email=val
+			return true
+		if key=="email_vfy":
+			emailVfy=val
+			return true
 		if key=="password":
 			password=val
 			return true
 		if key=="characters":
 			characters=val
+			return true
+		if key=="allowed_ip":
+			allowed_ip=val
 			return true
 		return false
 	else:
@@ -56,8 +74,11 @@ func _spawn_Account():
 	_spawn_GOB()
 	write("username","nobody")
 	write("handle","nil")
+	write("email","")
+	write("email_vfy",false)
 	write("password","$")
 	write("characters",[])
+	write("allowed_ip",[])
 
 func _spawn():
 	_spawn_Account()
