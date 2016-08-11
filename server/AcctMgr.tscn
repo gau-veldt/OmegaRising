@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=1]
+[gd_scene load_steps=3 format=1]
 
 [ext_resource path="res://AcctMgr.gd" type="Script" id=1]
+[ext_resource path="res://modulator_mtl.tres" type="CanvasItemMaterial" id=2]
 
 [node name="AcctMgr" type="Control"]
 
@@ -189,6 +190,24 @@ percent_visible = 1.0
 lines_skipped = 0
 max_lines_visible = -1
 
+[node name="txt_ip_wlist" type="Label" parent="acctView"]
+
+anchor/left = 1
+anchor/right = 1
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 210.0
+margin/top = 115.0
+margin/right = 9.0
+margin/bottom = 32.0
+text = "Allow IP Addresses"
+align = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
 [node name="edit_user" type="LineEdit" parent="acctView"]
 
 focus/ignore_mouse = false
@@ -266,6 +285,25 @@ focus_mode = 2
 caret/caret_blink = false
 caret/caret_blink_speed = 0.65
 
+[node name="edit_IP" type="LineEdit" parent="acctView"]
+
+anchor/left = 1
+anchor/top = 1
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 210.0
+margin/top = 64.0
+margin/right = 56.0
+margin/bottom = 40.0
+placeholder/alpha = 0.6
+focus_mode = 2
+caret/caret_blink = false
+caret/caret_blink_speed = 0.65
+
 [node name="chgUser" type="Button" parent="acctView"]
 
 anchor/left = 1
@@ -321,6 +359,46 @@ shortcut = null
 text = "Change Email"
 flat = false
 
+[node name="wlistRemove" type="Button" parent="acctView"]
+
+anchor/left = 1
+anchor/top = 1
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 210.0
+margin/top = 99.0
+margin/right = 9.0
+margin/bottom = 75.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Delete IP"
+flat = false
+
+[node name="wlistAdd" type="Button" parent="acctView"]
+
+anchor/left = 1
+anchor/top = 1
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 50.0
+margin/top = 64.0
+margin/right = 9.0
+margin/bottom = 40.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Add"
+flat = false
+
 [node name="chgEmailVfy" type="Button" parent="acctView"]
 
 anchor/left = 1
@@ -339,6 +417,33 @@ shortcut = null
 text = "Unverified"
 flat = false
 
+[node name="ip_wlist_area" type="Panel" parent="acctView"]
+
+material/material = ExtResource( 2 )
+anchor/left = 1
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 210.0
+margin/top = 138.0
+margin/right = 9.0
+margin/bottom = 110.0
+
+[node name="ip_wlist" type="ItemList" parent="acctView/ip_wlist_area"]
+
+rect/min_size = Vector2( 32, 32 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 32.0
+margin/bottom = 32.0
+
 [connection signal="value_changed" from="select" to="." method="onSelectAcct"]
 
 [connection signal="pressed" from="newAccount" to="." method="onCreateAcct"]
@@ -355,11 +460,17 @@ flat = false
 
 [connection signal="text_changed" from="acctView/edit_pass2" to="." method="validatePassword"]
 
+[connection signal="text_changed" from="acctView/edit_IP" to="." method="validateWLIP"]
+
 [connection signal="pressed" from="acctView/chgUser" to="." method="onChangeName"]
 
 [connection signal="pressed" from="acctView/chgPass" to="." method="onChangePass"]
 
 [connection signal="pressed" from="acctView/chgEmail" to="." method="onChangeEmail"]
+
+[connection signal="pressed" from="acctView/wlistRemove" to="." method="onWLDelete"]
+
+[connection signal="pressed" from="acctView/wlistAdd" to="." method="onWLAdd"]
 
 [connection signal="toggled" from="acctView/chgEmailVfy" to="." method="onChangeEmailVfy"]
 

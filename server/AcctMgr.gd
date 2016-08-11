@@ -13,11 +13,14 @@ onready var edtHandle=get_node("acctView/edit_handle")
 onready var edtEmail=get_node("acctView/edit_email")
 onready var edtPass1=get_node("acctView/edit_pass1")
 onready var edtPass2=get_node("acctView/edit_pass2")
+onready var edtIP=get_node("acctView/edit_IP")
 onready var passBtn=get_node("acctView/chgPass")
 onready var userBtn=get_node("acctView/chgUser")
 onready var emailBtn=get_node("acctView/chgEmail")
 onready var emailVfyBtn=get_node("acctView/chgEmailVfy")
 onready var acctID=get_node("acctView/txt_acctID")
+onready var ipWList=get_node("acctView/ip_wlist_area/ip_wlist")
+onready var ipWLadd=get_node("acctView/wlistAdd")
 
 var init_sel=false
 
@@ -115,6 +118,61 @@ func onChangeEmailVfy(vfy):
 		emailVfyBtn.set("custom_colors/font_color_hover",Color("80ff80"))
 		ob.write("email_vfy",true)
 
+func onWLDelete():
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var allowed=ob.read("allowed_ip")
+	var ip=""
+	var gone=ipWList.get_selected_items()
+	if gone.size()>0:
+		ip=ipWList.get_item_text(gone[0])
+		allowed.erase(ip)
+		ob.write("allowed_ip",allowed)
+	ipWList.remove_item(gone[0])
+	validateWLIP(edtIP.get_text())
+
+func onWLAdd():
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var allowed=ob.read("allowed_ip")
+	var ip=edtIP.get_text()
+	allowed.append(ip)
+	ob.write("allowed_ip",allowed)
+	ipWList.add_item(ip,null,true)
+	validateWLIP(ip)
+
+func validateWLIP(txt):
+	var ts=txt.split(".")
+	var bad=true
+	if ts.size()==4:
+		var num
+		bad=false
+		for each in ts:
+			if !each.is_valid_integer():
+				bad=true
+			else:
+				num=int(each)
+				if num<0 or num>255:
+					bad=true
+	ipWLadd.set_text("Add")
+	if (!bad):
+		var fixup="%s.%s.%s.%s" % [int(ts[0]),int(ts[1]),int(ts[2]),int(ts[3])]
+		if fixup!=txt:
+			txt=fixup
+			edtIP.set_text(txt)
+		for idx in range(ipWList.get_item_count()):
+			if ipWList.get_item_text(idx)==txt:
+				# don't allow duplicates
+				bad=true
+				ipWList.select(idx)
+				ipWList.ensure_current_is_visible()
+				ipWLadd.set_text("Dup")
+	ipWLadd.set_disabled(bad)
+
 func onSelectAcct(sel):
 	var index=persist.index_bytype['Account']
 	var ob=index.get_child(sel)
@@ -124,6 +182,12 @@ func onSelectAcct(sel):
 	edtHandle.set_text(ob.read("handle"))
 	edtEmail.set_text(ob.read("email"))
 	acctID.set_text(uuid)
+	var allowed=ob.read("allowed_ip")
+	ipWList.clear()
+	ipWList.set_max_columns(1)
+	ipWList.set_size(ipWList.get_parent().get_size())
+	for each in allowed:
+		ipWList.add_item(each,null,true)
 	if email_vfy==true:
 		emailVfyBtn.set_pressed(true)
 		emailVfyBtn.set_text("Verified")
@@ -138,21 +202,36 @@ func onSelectAcct(sel):
 		emailVfyBtn.set("custom_colors/font_color_hover",Color("ff8080"))
 	validatePassword("")
 	validateUser("")
+	validateWLIP(edtIP.get_text())
 
 func onCreateAcct():
+	var index=persist.index_bytype['Account']
 	var ob=persist.spawn("Account")
 	var val=ob.get_index()
+	refresh(index)
+	scroll.set_value(val)
+	onSelectAcct(val)
 
 func onDeleteAcct():
 	var index=persist.index_bytype['Account']
 	var count=index.get_children().size()
 	var val=scroll.get_value()
 	var ob=index.get_child(val)
+	if (1+val)<scroll.get_max():
+		val+=1
+		scroll.set_value(val)
+		onSelectAcct(val)
+	else:
+		if (val>0):
+			val-=1
+			scroll.set_value(val)
+			onSelectAcct(val)
 	if count==1:
 		# flag need to reset selection on next create
 		# when deleting the last account in the system
 		init_sel=false
 	persist.nuke(ob)
+	call_deferred("refresh",index)
 
 func refresh(acctRoot):
 	var total=acctRoot.get_children().size()
