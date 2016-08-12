@@ -8,6 +8,8 @@ var emailVfy
 var password
 var allowed_ip
 var characters
+var friend=[]
+var ignore=[]
 
 func type():
 	return "Account"
@@ -35,6 +37,13 @@ func _read_Account(key):
 			return [true,characters]
 		if key=="allowed_ip":
 			return [true,allowed_ip]
+		if key=="socials":
+			var socials=[]
+			for each in friend:
+				socials.append("+"+str(each))
+			for each in ignore:
+				socials.append("-"+str(each))
+			return [true,socials]
 		return [false,null]
 	else:
 		return baserc
@@ -63,6 +72,19 @@ func _write_Account(key,val):
 		if key=="allowed_ip":
 			allowed_ip=val
 			return true
+		if key=="socials":
+			friend=[]
+			ignore=[]
+			var ch
+			var handle
+			for each in val:
+				ch=str(each)[0]
+				handle=each.right(1)
+				if ch=="+":
+					friend.append(handle)
+				else:
+					ignore.append(handle)
+			return true
 		return false
 	else:
 		return baserc
@@ -79,6 +101,7 @@ func _spawn_Account():
 	write("password","$")
 	write("characters",[])
 	write("allowed_ip",[])
+	write("socials",[])
 
 func _spawn():
 	_spawn_Account()

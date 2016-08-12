@@ -14,6 +14,7 @@ onready var edtEmail=get_node("acctView/edit_email")
 onready var edtPass1=get_node("acctView/edit_pass1")
 onready var edtPass2=get_node("acctView/edit_pass2")
 onready var edtIP=get_node("acctView/edit_IP")
+onready var edtSocial=get_node("acctView/edit_social")
 onready var passBtn=get_node("acctView/chgPass")
 onready var userBtn=get_node("acctView/chgUser")
 onready var emailBtn=get_node("acctView/chgEmail")
@@ -21,6 +22,10 @@ onready var emailVfyBtn=get_node("acctView/chgEmailVfy")
 onready var acctID=get_node("acctView/txt_acctID")
 onready var ipWList=get_node("acctView/ip_wlist_area/ip_wlist")
 onready var ipWLadd=get_node("acctView/wlistAdd")
+onready var ipWLdel=get_node("acctView/wlistRemove")
+onready var socList=get_node("acctView/social_area/socials")
+onready var socAdd=get_node("acctView/socialAdd")
+onready var socDel=get_node("acctView/socialRemove")
 
 var init_sel=false
 
@@ -130,8 +135,23 @@ func onWLDelete():
 		ip=ipWList.get_item_text(gone[0])
 		allowed.erase(ip)
 		ob.write("allowed_ip",allowed)
-	ipWList.remove_item(gone[0])
+		ipWList.remove_item(gone[0])
 	validateWLIP(edtIP.get_text())
+
+func onSocDelete():
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var socials=ob.read("socials")
+	var soc=""
+	var gone=socList.get_selected_items()
+	if gone.size()>0:
+		soc=socList.get_item_text(gone[0])
+		socials.erase(soc)
+		ob.write("socials",socials)
+		socList.remove_item(gone[0])
+	validateSocial(edtSocial.get_text())
 
 func onWLAdd():
 	var index=persist.index_bytype['Account']
@@ -144,6 +164,19 @@ func onWLAdd():
 	ob.write("allowed_ip",allowed)
 	ipWList.add_item(ip,null,true)
 	validateWLIP(ip)
+
+func onSocAdd():
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var socials=ob.read("socials")
+	var gone=socList.get_selected_items()
+	var soc=edtSocial.get_text()
+	socials.append(soc)
+	ob.write("socials",socials)
+	socList.add_item(soc,null,true)
+	validateSocial(soc)
 
 func validateWLIP(txt):
 	var ts=txt.split(".")
@@ -173,6 +206,47 @@ func validateWLIP(txt):
 				ipWLadd.set_text("Dup")
 	ipWLadd.set_disabled(bad)
 
+func validateSocial(txt):
+	var sel=int(scroll.get_value())
+	var idx=persist.index_bytype['Account']
+	var ob=idx.get_child(sel)
+	var myHandle=ob.read("handle")
+	var bad=true
+	var socials=ob.read("socials")
+	socAdd.set_text("Add")
+	if txt.length()>1:
+		var fch=txt[0]
+		if fch=="+" or fch=="-":
+			var who=txt.right(1)
+			if who!="":
+				var frn="+"+who
+				var ign="-"+who
+				if (frn in socials) or (ign in socials):
+					socAdd.set_text("Dup")
+				else:
+					if who!=myHandle:
+						var handle
+						for acct in idx.get_children():
+							handle=acct.read("handle")
+							if handle==who:
+								bad=false
+						if bad:
+							socAdd.set_text("DNE")
+					else:
+						socAdd.set_text("Sel")
+		else:
+			edtSocial.set_text("")
+	socAdd.set_disabled(bad)
+
+func onSelectSocial(sel):
+	var soc=socList.get_item_text(sel)
+	var fch=soc[0]
+	var who=soc.right(1)
+	if fch=="+":
+		socDel.set_text("Remove %s" % who)
+	else:
+		socDel.set_text("Unmute %s" % who)
+
 func onSelectAcct(sel):
 	var index=persist.index_bytype['Account']
 	var ob=index.get_child(sel)
@@ -200,9 +274,17 @@ func onSelectAcct(sel):
 		emailVfyBtn.set("custom_colors/font_color",Color("ff8080"))
 		emailVfyBtn.set("custom_colors/font_color_pressed",Color("ff8080"))
 		emailVfyBtn.set("custom_colors/font_color_hover",Color("ff8080"))
+	var socials=ob.read("socials")
+	socList.clear()
+	socList.set_max_columns(1)
+	socList.set_size(socList.get_parent().get_size())
+	for each in socials:
+		socList.add_item(each,null,true)
 	validatePassword("")
 	validateUser("")
 	validateWLIP(edtIP.get_text())
+	socDel.set_text("Delete Social")
+	validateSocial(edtSocial.get_text())
 
 func onCreateAcct():
 	var index=persist.index_bytype['Account']
@@ -254,5 +336,12 @@ func refresh(acctRoot):
 		delAcct.set_hidden(true)
 		view.set_hidden(true)
 
+func _process(delta):
+	var ipCnt=ipWList.get_selected_items().size()
+	if ipCnt>0:
+		ipWLdel.set_disabled(false)
+	else:
+		ipWLdel.set_disabled(true)
+
 func _ready():
-	pass
+	set_process(true)
