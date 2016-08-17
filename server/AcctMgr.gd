@@ -15,6 +15,7 @@ onready var edtPass1=get_node("acctView/edit_pass1")
 onready var edtPass2=get_node("acctView/edit_pass2")
 onready var edtIP=get_node("acctView/edit_IP")
 onready var edtSocial=get_node("acctView/edit_social")
+onready var edtProp=get_node("acctView/edit_props")
 onready var passBtn=get_node("acctView/chgPass")
 onready var userBtn=get_node("acctView/chgUser")
 onready var emailBtn=get_node("acctView/chgEmail")
@@ -26,6 +27,12 @@ onready var ipWLdel=get_node("acctView/wlistRemove")
 onready var socList=get_node("acctView/social_area/socials")
 onready var socAdd=get_node("acctView/socialAdd")
 onready var socDel=get_node("acctView/socialRemove")
+onready var propList=get_node("acctView/props_area/props")
+onready var propAdd=get_node("acctView/propsAdd")
+onready var propDel=get_node("acctView/propsRemove")
+onready var propChg=get_node("acctView/propChangeDlg")
+onready var propChg_which=get_node("acctView/propChangeDlg/who")
+onready var propChg_val=get_node("acctView/propChangeDlg/prop_val")
 
 var init_sel=false
 
@@ -153,6 +160,22 @@ func onSocDelete():
 		socList.remove_item(gone[0])
 	validateSocial(edtSocial.get_text())
 
+func onPropDelete():
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var props=ob.read("props")
+	var prop=""
+	var gone=propList.get_selected_items()
+	if gone.size()>0:
+		prop=propList.get_item_text(gone[0])
+		props.erase(prop)
+		ob.write("props",props)
+		propList.remove_item(gone[0])
+		propReselect=true
+	validateProp(edtProp.get_text())
+
 func onWLAdd():
 	var index=persist.index_bytype['Account']
 	var count=index.get_children().size()
@@ -177,6 +200,47 @@ func onSocAdd():
 	ob.write("socials",socials)
 	socList.add_item(soc,null,true)
 	validateSocial(soc)
+
+var propReselect=false
+func onPropAdd():
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var props=ob.read("props")
+	var prop=edtProp.get_text()
+	props[prop]=null
+	ob.write("props",props)
+	propList.add_item(prop,null,true)
+	propReselect=true
+	validateProp(prop)
+
+func onPropTrigger(idx):
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var user=ob.read("username")
+	var props=ob.read("props")
+	var foo=WindowDialog.new()
+	propChg.set_title("Change property on %s" % user)
+	var prop=propList.get_item_text(idx)
+	propChg_which.set_text(prop)
+	propChg_val.set_text(str(props[prop]))
+	propChg.popup()
+
+func onPropNewValue():
+	var index=persist.index_bytype['Account']
+	var count=index.get_children().size()
+	var val=scroll.get_value()
+	var ob=index.get_child(val)
+	var prop=propChg_which.get_text()
+	var new_val=propChg_val.get_text()
+	var props=ob.read("props")
+	if new_val.is_valid_float():
+		new_val=float(new_val)
+	props[prop]=new_val
+	ob.write("props",props)
 
 func validateWLIP(txt):
 	var ts=txt.split(".")
@@ -238,6 +302,19 @@ func validateSocial(txt):
 			edtSocial.set_text("")
 	socAdd.set_disabled(bad)
 
+func validateProp(txt):
+	var bad=true
+	propAdd.set_text("Add")
+	if txt.length()>0:
+		bad=false
+		for idx in range(propList.get_item_count()):
+			if propList.get_item_text(idx)==txt:
+				bad=true
+				propList.select(idx)
+				propList.ensure_current_is_visible()
+				propAdd.set_text("Dup")
+	propAdd.set_disabled(bad)
+
 func onSelectSocial(sel):
 	var soc=socList.get_item_text(sel)
 	var fch=soc[0]
@@ -246,6 +323,10 @@ func onSelectSocial(sel):
 		socDel.set_text("Remove %s" % who)
 	else:
 		socDel.set_text("Unmute %s" % who)
+
+func onSelectProp(sel):
+	var prop=propList.get_item_text(sel)
+	propDel.set_text("Delete %s" % prop)
 
 func onSelectAcct(sel):
 	var index=persist.index_bytype['Account']
@@ -256,12 +337,7 @@ func onSelectAcct(sel):
 	edtHandle.set_text(ob.read("handle"))
 	edtEmail.set_text(ob.read("email"))
 	acctID.set_text(uuid)
-	var allowed=ob.read("allowed_ip")
-	ipWList.clear()
-	ipWList.set_max_columns(1)
-	ipWList.set_size(ipWList.get_parent().get_size())
-	for each in allowed:
-		ipWList.add_item(each,null,true)
+
 	if email_vfy==true:
 		emailVfyBtn.set_pressed(true)
 		emailVfyBtn.set_text("Verified")
@@ -274,17 +350,35 @@ func onSelectAcct(sel):
 		emailVfyBtn.set("custom_colors/font_color",Color("ff8080"))
 		emailVfyBtn.set("custom_colors/font_color_pressed",Color("ff8080"))
 		emailVfyBtn.set("custom_colors/font_color_hover",Color("ff8080"))
+
+	var allowed=ob.read("allowed_ip")
+	ipWList.clear()
+	ipWList.set_max_columns(1)
+	ipWList.set_size(ipWList.get_parent().get_size())
+	for each in allowed:
+		ipWList.add_item(each,null,true)
+
 	var socials=ob.read("socials")
 	socList.clear()
 	socList.set_max_columns(1)
 	socList.set_size(socList.get_parent().get_size())
 	for each in socials:
 		socList.add_item(each,null,true)
+
+	var props=ob.read("props")
+	propList.clear()
+	propList.set_max_columns(1)
+	propList.set_size(propList.get_parent().get_size())
+	for each in props:
+		propList.add_item(each,null,true)
+
 	validatePassword("")
 	validateUser("")
 	validateWLIP(edtIP.get_text())
 	socDel.set_text("Delete Social")
 	validateSocial(edtSocial.get_text())
+	propDel.set_text("Delete")
+	validateProp(edtProp.get_text())
 
 func onCreateAcct():
 	var index=persist.index_bytype['Account']
@@ -342,6 +436,27 @@ func _process(delta):
 		ipWLdel.set_disabled(false)
 	else:
 		ipWLdel.set_disabled(true)
+
+	var socCnt=socList.get_selected_items().size()
+	if socCnt>0:
+		socDel.set_disabled(false)
+	else:
+		socDel.set_text("Delete Social")
+		socDel.set_disabled(true)
+
+	var propCnt=propList.get_selected_items().size()
+	if propCnt>0:
+		propDel.set_disabled(false)
+	else:
+		propDel.set_text("Delete")
+		propDel.set_disabled(true)
+
+	if propReselect:
+		propReselect=false
+		var sel=propList.get_selected_items()
+		if sel.size()>0:
+			sel=sel[0]
+			onSelectProp(sel)
 
 func _ready():
 	set_process(true)

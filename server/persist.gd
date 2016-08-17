@@ -38,6 +38,23 @@ func generate_guid():
 	guid_state['serial']=(guid_state['serial']+1)%0x1000000
 	return uid
 
+const _uuid_char="0123456789ABCDEF-"
+func is_uuid(raw):
+	var test=str(raw).to_upper()
+	if test.length()==36:
+		var parts=test.split("-")
+		if parts.size()==5:
+			if  parts[0].length()==8 and \
+				parts[1].length()==4 and \
+				parts[2].length()==4 and \
+				parts[3].length()==4 and \
+				parts[4].length()==12:
+				for ch in test:
+					if not ch in _uuid_char:
+						return false
+				return true
+	return false
+
 # game object factories
 var factory={}
 func populate_factory():
@@ -99,6 +116,8 @@ func spawn(type):
 	return ob
 
 func reconstitute(uuid):
+	if index_all.has(uuid):
+		return index_all[uuid]
 	var file=File.new()
 	var err=file.open(base.plus_file(uuid),File.READ)
 	if err==OK:
