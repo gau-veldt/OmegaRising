@@ -10,6 +10,7 @@ onready var persist=get_node("/root/persist")
 onready var server=get_node("/root/Server")
 
 var state={}
+var props={}
 
 func write(key,value):
 	# override on_write, not write
@@ -35,9 +36,14 @@ func on_read(key):
 	return _read_GOB(key)
 
 func _read_GOB(key):
+	if key=="props":
+		return [true,props]
 	return [false,null]
 
 func _write_GOB(key,value):
+	if key=="props":
+		props=value
+		return true
 	return false
 
 func type():
@@ -60,7 +66,7 @@ func _ready():
 	pass
 
 func _spawn_GOB():
-	pass
+	write("props",{})
 
 func _spawn():
 	_spawn_GOB()

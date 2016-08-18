@@ -10,7 +10,6 @@ var allowed_ip
 var characters
 var friend=[]
 var ignore=[]
-var props={}
 
 func type():
 	return "Account"
@@ -45,8 +44,6 @@ func _read_Account(key):
 			for each in ignore:
 				socials.append("-"+str(each))
 			return [true,socials]
-		if key=="props":
-			return [true,props]
 		return [false,null]
 	else:
 		return baserc
@@ -88,9 +85,6 @@ func _write_Account(key,val):
 				else:
 					ignore.append(handle)
 			return true
-		if key=="props":
-			props=val
-			return true
 		return false
 	else:
 		return baserc
@@ -108,7 +102,6 @@ func _spawn_Account():
 	write("characters",[])
 	write("allowed_ip",[])
 	write("socials",[])
-	write("props",{})
 
 func _spawn():
 	_spawn_Account()
