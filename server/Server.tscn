@@ -74,6 +74,8 @@ script/script = ExtResource( 3 )
 
 [node name="index" type="Node" parent="."]
 
+[node name="game_scripts" type="Node" parent="."]
+
 [connection signal="peerMessage" from="." to="Protocol" method="onPeerMessage"]
 
 [connection signal="protoCommand" from="." to="Protocol" method="onProtoCommand"]

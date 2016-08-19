@@ -132,7 +132,7 @@ func write(what):
 func writestr(what):
 	sendFIFO.append_array(what.to_utf8())
 
-func disconnect():
+func drop():
 	if host!=null:
 		host.disconnect()
 

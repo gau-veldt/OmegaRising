@@ -2,6 +2,7 @@
 extends Node
 
 var base="user://persist/default/"
+onready var scrib=get_node("/root/Server/game_scripts")
 
 func set_base(dir):
 	dir=dir.replace("/","")
@@ -178,7 +179,35 @@ func nuke(ob):
 	# bytype index entry deleted when child removed from parent
 	ob.queue_free()
 
+var scripts={}
+func loadGameScripts():
+	var loc=(OS.get_data_dir()).plus_file("scripts")
+	var dir=Directory.new()
+	if !dir.dir_exists(loc):
+		dir.make_dir(loc)
+	dir.open(loc)
+	var file
+	var ext
+	var base
+	var scr
+	dir.list_dir_begin()
+	file=dir.get_next()
+	while file!="":
+		ext=file.right(file.length()-3)
+		if ext.to_lower()==".gd":
+			base=file.left(file.length()-3)
+			if base.length()>0:
+				scr=load(loc.plus_file(file))
+				if scr!=null:
+					var ob=Node.new()
+					ob.set_name(file)
+					ob.set_script(scr)
+					scripts[base]=ob
+					scrib.add_child(ob)
+		file=dir.get_next()
+
 func _ready():
 	populate_factory()
 	validate_dir()
 	load_all()
+	loadGameScripts()

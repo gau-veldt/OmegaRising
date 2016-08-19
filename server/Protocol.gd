@@ -14,7 +14,7 @@ func onProtoCommand(who,what):
 
 	# client requests exit
 	if cmd=='quit':
-		sxcvr.disconnect()
+		sxcvr.drop()
 
 	# client asks for game world time
 	if cmd=='time':
