@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=1]
+[gd_scene load_steps=3 format=1]
 
 [ext_resource path="res://Server.gd" type="Script" id=1]
 [ext_resource path="res://AcctMgr.tscn" type="PackedScene" id=2]
-[ext_resource path="res://Protocol.gd" type="Script" id=3]
 
 [node name="Server" type="Node"]
 
@@ -66,18 +65,8 @@ window/title = "Quit Server"
 dialog/text = "Are you sure you wish to shut down the server\?"
 dialog/hide_on_ok = true
 
-[node name="Protocol" type="Node" parent="."]
-
-script/script = ExtResource( 3 )
-
-[node name="sessions" type="Node" parent="."]
-
 [node name="index" type="Node" parent="."]
 
 [node name="game_scripts" type="Node" parent="."]
-
-[connection signal="peerMessage" from="." to="Protocol" method="onPeerMessage"]
-
-[connection signal="protoCommand" from="." to="Protocol" method="onProtoCommand"]
 
 

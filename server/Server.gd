@@ -1,9 +1,6 @@
 
 extends Node
 
-signal protoCommand(host,data)
-signal peerMessage(frame)
-
 var serverVersion=[0,0,1,"prealpha"]
 var sendSize=4096
 var serverPort=4000
@@ -12,20 +9,18 @@ var worldTime=0
 # 24 min is one game day idle
 var idle_timeout=1440
 
-var udp=PacketPeerUDP.new()
+var host=NetworkedMultiplayerENet.new()
 
 onready var persist=get_node("/root/persist")
 onready var serverLog=get_node("Tabber/Log")
 onready var quitDlg=get_node("QuitQuestion")
-onready var host=TCP_Server.new()
-onready var active=get_node("sessions")
-var xcvr=load("res://Transceiver.tscn")
-
-var sessionState={}
-var frameSession={}
+onready var active=get_node("/root/lobby")
+onready var server_node=load("res://ServerNode.tscn")
+var server_iface=null
 
 const EOL=RawArray([13,10])
 const NUL=RawArray([0])
+var manifest={}
 
 func versionString():
 	return "%d.%d.%03d-%s" % serverVersion
@@ -58,10 +53,12 @@ func onServerMenuItem(id):
 
 func onStopServer():
 	logMessage("Server shutting down.")
+	server_iface.queue_free()
 	var logfile=File.new()
 	logfile.open("user://serverlog",File.WRITE)
 	logfile.store_string("%s\n" % serverLog.get_text())
 	logfile.close()
+	get_tree().set_network_peer(null)
 	get_tree().quit()
 
 func onConfirmQuit():
@@ -74,48 +71,10 @@ func _notification(what):
 func pluralAppend(qty):
 	return ["s","","s"][min(max(0,qty),2)]
 
-var manifest={}
-var buffer
-
-func onRecv(peer,data):
-	var ss=sessionState[peer]
-	ss['idle']=0.0
-	ss['ichp']=10.0
-	ss['recv']+=data.get_string_from_utf8()
-	if ss['mode']=='CMD':
-		var data=ss['recv']
-		var cmd=""
-		var lfPos=data.find("\n")
-		while lfPos>0:
-			while lfPos==1:
-				data=data.right(1+lfPos)
-			if lfPos>0:
-				cmd=data.left(lfPos-1)
-				data=data.right(1+lfPos)
-				lfPos=data.find("\n")
-			sessionState[peer]['recv']=data
-			lfPos=data.find("\n")
-			if cmd!="":
-				emit_signal("protoCommand",peer,cmd)
-				cmd=""
-
-func onSendCompleted(peer):
-	var ss=sessionState[peer]
-
-func onDisconnect(peer):
-	# remove dropped connections
-	var ss=sessionState[peer]
-	var sxcvr=ss['xcvr']
-	logMessage("[signal] Client %s:%s disconnected." % [ss['addr'],ss['port']])
-	sxcvr.detach()
-	sxcvr.queue_free()
-	sessionState.erase(peer)
-
 onready var acctCtl=get_node("Tabber/Account")
 var oldAcctCount=-1
 var curAcctCount
 
-var frame={}
 onready var acct_idx=persist.get_gob_index('Account')
 func _process(delta):
 	# update world time
@@ -123,92 +82,26 @@ func _process(delta):
 	if worldTime>=1440:
 		worldTime-=1440
 
-	# update client idles
-	var gonzo=[]
-	for each in frameSession:
-		frameSession[each]['idle']+=delta
-		if frameSession[each]['idle']>idle_timeout:
-			gonzo.append(each)
-	for each in gonzo:
-		frameSession.erase(each)
-		logMessage("Client id %d punted: idle over %d seconds." % [each,idle_timeout])
-
 	# update server account view
 	curAcctCount=acct_idx.get_children().size()
 	if curAcctCount!=oldAcctCount:
 		acctCtl.refresh(acct_idx)
 		oldAcctCount=curAcctCount
 
-	while udp.get_available_packet_count()>0:
-		frame.clear()
-		frame['data']=udp.get_var()
-		frame['addr']=udp.get_packet_ip()
-		frame['port']=udp.get_packet_port()
-		emit_signal("peerMessage",frame)
-
-	# connect a client
-	var ss
-	if host.is_connection_available():
-		var sess=host.take_connection()
-		sessionState[sess]={}
-		ss=sessionState[sess]
-		ss['addr']=sess.get_connected_host()
-		ss['port']=sess.get_connected_port()
-		ss['idle']=0.0
-		ss['ichp']=10.0
-		ss['blk_todo']=0
-		ss['blk_done']=0
-		ss['recv']=""
-		ss['mode']="CMD"
-		ss['xcvr']=xcvr.instance()
-		active.add_child(ss['xcvr'])
-		ss['xcvr'].connect("Disconnected",self,"onDisconnect")
-		ss['xcvr'].connect("GotData",self,"onRecv")
-		ss['xcvr'].connect("SendingFinished",self,"onSendCompleted")
-		ss['xcvr'].attach(sess)
-		logMessage("Client %s:%s connected." % [ss['addr'],ss['port']])
-
-	# read any data from connectees
-	# and drop disconnected clients
-	var fh
-	var buf
-	var bufsize
-	var blknum
-	var blkcnt
-	var tstr
-	for peer in sessionState:
-		ss=sessionState[peer]
-
-		if ss['mode']=='SEND':
-			bufsize=min(sendSize,ss['blk_todo'])
-			blknum=int(ss['blk_done']/sendSize)
-			blkcnt=int((ss['blk_todo']+ss['blk_done']+sendSize)/sendSize)
-			fh=ss['blk_file']
-			buf=fh.get_buffer(bufsize)
-			tstr="DATA %06d/%06d %05d " % [blknum,blkcnt-1,bufsize]
-			ss['xcvr'].writestr(tstr)
-			ss['xcvr'].write(buf)
-			ss['xcvr'].write(EOL)
-			ss['blk_todo']-=bufsize
-			ss['blk_done']+=bufsize
-			if ss['blk_todo']==0:
-				fh.close()
-				ss['blk_file']=null
-				ss['blk_todo']=0
-				ss['blk_done']=0
-				ss['idle']=0.0
-				ss['ichp']=10.0
-				ss['mode']='CMD'
-			
-		if ss['mode']=='CMD':
-			ss['idle']+=delta
-			ss['ichp']-=delta
-			if ss['ichp']<=0.0:
-				ss['ichp']=10.0		# reset idle checkpoint
-				logMessage("%s:%s send keepalive" % [ss['addr'],ss['port']])
-				ss['xcvr'].write(NUL)
-
 	persist.save()
+
+var lobby={}
+onready var CProxy=load("res://ClientProxy.tscn")
+func onClientConnect(id):
+	var pxy=CProxy.instance()
+	lobby[id]=pxy
+	pxy.set_name(str(id))
+	active.add_child(pxy)
+
+func onClientDrop(id):
+	var pxy=lobby[id]
+	lobby.erase(id)
+	pxy.queue_free()
 
 func _ready():
 	var quitBtn=quitDlg.get_ok()
@@ -222,31 +115,35 @@ func _ready():
 	logMessage("Loading asset manifest...")
 	manifest.clear()
 	var mf=ConfigFile.new()
-	mf.load("res://manifest")
+	mf.load("user://manifest")
 	var aCount=mf.get_section_keys("Assets").size()
 	logMessage("Game currently has %d asset%s." % [aCount,pluralAppend(aCount)] )
 	var info
 	for each in mf.get_section_keys("Assets"):
 		info=mf.get_value("Assets",each,{})
 		manifest[each]=info
-	var err=mf.save("res://manifest")
+	var err=mf.save("user://manifest")
 	if err!=OK:
 		logMessage("PANIC: Server directory isn't writable")
 		onStopServer()
 
 	var cfg=ConfigFile.new()
 	var err=cfg.load("user://server.ini")
-	sendSize=cfg.get_value("BGDownload","block_size",4096)
 	serverPort=cfg.get_value("Server","port",4000)
 	serverSalt=cfg.get_value("Server","salt",rand_str(8))
-	cfg.set_value("BGDownload","block_size",sendSize)
 	cfg.set_value("Server","port",serverPort)
 	cfg.set_value("Server","salt",serverSalt)
 	err=cfg.save("user://server.ini")
-	logMessage("Xfer block size is "+str(sendSize))
+
+	server_iface=server_node.instance()
+	server_iface.set_name(str(1))
+	active.add_child(server_iface)
+	logMessage("Server RPC endpoint ready.")
 
 	logMessage("Listening on port "+str(serverPort))
-	host.listen(serverPort)
-	udp.listen(serverPort)
-	
+	host.create_server(serverPort,100)
+	get_tree().set_network_peer(host)
+	get_tree().connect("network_peer_connected",self,"onClientConnect")
+	get_tree().connect("network_peer_disconnected",self,"onClientDrop")
+
 	set_process(true)
