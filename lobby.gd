@@ -1,4 +1,4 @@
-extends Node2D
+extends Node
 
 #  The lobby is an autoload singleton where
 #  an object hierarchy may be placed in order

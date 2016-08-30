@@ -7,7 +7,7 @@ extends Spatial
 #
 
 onready var persist=get_node("/root/persist")
-onready var server=get_node("/root/Server")
+onready var server=get_node("/root/Peer")
 
 var state={}
 var props={}

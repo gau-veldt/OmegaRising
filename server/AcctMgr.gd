@@ -1,7 +1,7 @@
 
 extends Control
 
-onready var server=get_node("/root/Server")
+onready var server=get_node("/root/Peer")
 onready var persist=get_node("/root/persist")
 
 onready var scroll=get_node("select")

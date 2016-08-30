@@ -2,7 +2,7 @@
 extends Node
 
 var base="user://persist/default/"
-onready var scrib=get_node("/root/Server/game_scripts")
+onready var scrib=get_node("/root/Peer/game_scripts")
 
 func set_base(dir):
 	dir=dir.replace("/","")
@@ -82,7 +82,7 @@ func populate_factory():
 #
 #  Object indexing
 #
-onready var index=get_node("/root/Server/index")
+onready var index=get_node("/root/Peer/index")
 var index_bytype={}
 var index_all={}
 func index_object(uuid,type,ob):

@@ -1,11 +1,12 @@
 
 extends Node
 
-var serverVersion=[0,0,1,"prealpha"]
+var serverVersion=[0,1,0,"pre_alpha"]
 var sendSize=4096
 var serverPort=4000
 var serverSalt='@@@@@@@@'
 var worldTime=0
+var Godot_Version=OS.get_engine_version()
 # 24 min is one game day idle
 var idle_timeout=1440
 
@@ -17,9 +18,6 @@ onready var quitDlg=get_node("QuitQuestion")
 onready var active=get_node("/root/lobby")
 onready var server_node=load("res://ServerNode.tscn")
 var server_iface=null
-
-const EOL=RawArray([13,10])
-const NUL=RawArray([0])
 var manifest={}
 
 func versionString():
@@ -97,11 +95,13 @@ func onClientConnect(id):
 	lobby[id]=pxy
 	pxy.set_name(str(id))
 	active.add_child(pxy)
+	logMessage("Client %d connected" % id)
 
 func onClientDrop(id):
 	var pxy=lobby[id]
 	lobby.erase(id)
 	pxy.queue_free()
+	logMessage("Client %d disconnected" % id)
 
 func _ready():
 	var quitBtn=quitDlg.get_ok()
@@ -111,7 +111,7 @@ func _ready():
 	get_tree().set_auto_accept_quit(false)
 
 	logMessage("Omega Rising server (Version %s) starting up" % versionString())
-	logMessage("Server running via Godot version %s" % "")
+	logMessage("Server running via Godot version %s" % OS.get_engine_version()['string'])
 	logMessage("Loading asset manifest...")
 	manifest.clear()
 	var mf=ConfigFile.new()
@@ -147,3 +147,4 @@ func _ready():
 	get_tree().connect("network_peer_disconnected",self,"onClientDrop")
 
 	set_process(true)
+
