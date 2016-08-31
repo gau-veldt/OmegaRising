@@ -1,6 +1,10 @@
 
 extends Node
 
+var net_id
+func _set_id(id):
+	net_id=id
+
 #
 #	Proxy for connected client
 #	The server adds one under /root/lobby/ nodepath
@@ -36,6 +40,10 @@ extends Node
 #		ClientProxy		(name="1000")
 #		ClientNode		(name="1001")
 #
+
+func hello():
+	# handshake ("server is ready")
+	rpc_id(net_id,"hello",1)
 
 func _ready():
 	pass

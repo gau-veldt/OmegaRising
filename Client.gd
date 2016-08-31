@@ -20,6 +20,7 @@ func onConnect():
 	client=CHost.instance()
 	client.set_name(str(client_id))
 	lobby.add_child(client)
+	server.hello(client_id)
 	print("connected (id=%d)." % client_id)
 
 func onConnFail():

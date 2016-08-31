@@ -94,7 +94,9 @@ func onClientConnect(id):
 	var pxy=CProxy.instance()
 	lobby[id]=pxy
 	pxy.set_name(str(id))
+	pxy._set_id(id)
 	active.add_child(pxy)
+	pxy.hello()
 	logMessage("Client %d connected" % id)
 
 func onClientDrop(id):

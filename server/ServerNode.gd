@@ -1,6 +1,8 @@
 
 extends Node
 
+onready var server=get_node("/root/Peer")
+
 #	server's RPC endpoint
 #		- net_id=1
 #		- lives in /root/lobby
@@ -11,6 +13,9 @@ extends Node
 #   net_id 1).  Calls by the client into this ServerProxy object
 #   become an rpc call received by the server at its ServerNode object.
 #
+
+remote func hello(id):
+	server.logMessage("got client %d hello" % id)
 
 func _ready():
 	pass
