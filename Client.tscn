@@ -45,7 +45,6 @@ margin/bottom = 720.0
 
 [node name="Login" parent="View2D/HUD" instance=ExtResource( 2 )]
 
-visibility/visible = false
 margin/left = 32.0
 margin/top = 32.0
 margin/right = 666.0
@@ -53,6 +52,8 @@ margin/bottom = 305.0
 
 [node name="LoginStatus" type="Panel" parent="View2D/HUD"]
 
+editor/display_folded = true
+visibility/visible = false
 anchor/left = 3
 anchor/top = 3
 anchor/right = 3
@@ -137,6 +138,35 @@ valign = 1
 percent_visible = 1.0
 lines_skipped = 0
 max_lines_visible = -1
+
+[node name="motd_bg" type="Panel" parent="View2D/HUD"]
+
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 698.0
+margin/top = 32.0
+margin/right = 32.0
+margin/bottom = 32.0
+
+[node name="motd" type="RichTextLabel" parent="View2D/HUD/motd_bg"]
+
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 8.0
+margin/top = 8.0
+margin/right = 8.0
+margin/bottom = 8.0
+bbcode/enabled = true
+bbcode/bbcode = ""
+visible_characters = -1
 
 [node name="index" type="Node" parent="."]
 

@@ -6,6 +6,7 @@ var serverPort=4000
 var serverSalt='@@@@@@@@'
 var worldTime=0
 var Godot_Version=OS.get_engine_version()
+var motd=""
 # 24 min is one game day idle
 var idle_timeout=1440
 
@@ -96,6 +97,7 @@ func onClientConnect(id):
 	pxy._set_id(id)
 	active.add_child(pxy)
 	pxy.hello()
+	pxy.motd(motd)
 	logMessage("Client %d connected" % id)
 
 func onClientDrop(id):
@@ -127,6 +129,13 @@ func _ready():
 	if err!=OK:
 		logMessage("PANIC: Server directory isn't writable")
 		onStopServer()
+
+	var motdF=File.new()
+	err=motdF.open("user://motd",File.READ)
+	if err==OK:
+		motd=motdF.get_as_text()
+		motdF.close()
+		logMessage("Read server MOTD (%d chars)" % motd.length())
 
 	var cfg=ConfigFile.new()
 	var err=cfg.load("user://server.ini")

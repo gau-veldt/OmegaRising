@@ -1,6 +1,8 @@
 
 extends Node
 
+signal SongChanged(song)
+
 var GameName="Omega Rising"
 
 # proxy object for server
@@ -26,24 +28,33 @@ onready var bgm=get_node("/root/Peer/bgm")
 onready var hud=get_node("/root/Peer/View2D/HUD")
 onready var dlgLogin=hud.get_node("Login")
 onready var dlgAuth=hud.get_node("LoginStatus")
+onready var dlgMotd=hud.get_node("motd_bg")
+onready var motd=dlgMotd.get_node("motd")
 
 func init_client_resources():
 	resources['bgm/lobby']=load("user://bgm/lobby.ogg")
 	resources['bgm/menu']=load("user://bgm/menu.ogg")
 
 func onConnect():
-	window_status("Connected")
+	window_status("Lobby")
 	dlgLogin.nologin(false)
+	dlgMotd.set_hidden(false)
 	client_id=get_tree().get_network_unique_id()
 	client=CHost.instance()
+	client.connect("MOTD",self,"onChangeMOTD")
 	client.set_name(str(client_id))
 	lobby.add_child(client)
 	server.hello(client_id)
 	print("connected (id=%d)." % client_id)
 
+func onChangeMOTD(msg):
+	motd.set_bbcode(msg)
+
 func onConnFail():
+	change_bgm(resources['bgm/lobby'])
 	window_status("Failed to Connect")
 	dlgLogin.hide()
+	dlgMotd.hide()
 	dlgAuth.set_hidden(false)
 	dlgAuth.set_caption("Server is Down")
 	dlgAuth.set_message("Please try again later.\n")
@@ -52,11 +63,13 @@ func onConnFail():
 	get_tree().quit()
 
 func onDisconnect():
+	change_bgm(resources['bgm/lobby'])
 	server.queue_free()
 	client.queue_free()
 	get_tree().set_network_peer(null)
 	window_status("Disconnected")
 	dlgLogin.hide()
+	dlgMotd.hide()
 	dlgAuth.set_hidden(false)
 	dlgAuth.set_caption("Server Disconnected")
 	dlgAuth.set_message("Please try again later.")
@@ -64,15 +77,68 @@ func onDisconnect():
 	yield(dlgAuth,"Dismiss")
 	get_tree().quit()
 
+var segue_rate=1.5
+var segue=null
+var segue_cur=null
+var segue_pos=0
+var fullscreen=false
+var debounce_F11
 func _process(delta):
-	pass
+	#####################
+	#  BGM transitions  #
+	#####################
+	if segue==segue_cur:
+		segue=null
+	if segue!=null:
+		if segue_cur==null:
+			segue_cur=segue
+			segue=null
+			segue_pos=0
+			bgm.set_stream(segue_cur)
+			if segue_cur!=null:
+				bgm.set_volume(1.0)
+				bgm.play()
+				bgm.set_loop(true)
+				emit_signal("SongChanged",segue_cur)
+		else:
+			if segue_pos>=segue_rate:
+				segue_cur=segue
+				segue=null
+				segue_pos=0
+				bgm.set_stream(segue_cur)
+				if segue_cur!=null:
+					bgm.set_volume(1.0)
+					bgm.play()
+					bgm.set_loop(true)
+					emit_signal("SongChanged",segue_cur)
+			else:
+				var vol=1.0-(min(segue_pos,1.5)/segue_rate)
+				bgm.set_volume(vol)
+				segue_pos+=delta
+
+	#######################
+	#  Toggle fullscreen  #
+	#######################
+	if Input.is_action_pressed("fullscreen_toggle") and !debounce_F11:
+			debounce_F11=true
+			fullscreen=!fullscreen
+			OS.set_window_fullscreen(fullscreen)
+	if !Input.is_action_pressed("fullscreen_toggle") and debounce_F11:
+		debounce_F11=false
 
 func requestLogin(username,password):
 	window_status("Log on %s" % username)
 	dlgLogin.hide()
+	dlgMotd.hide()
 	dlgAuth.show()
 	dlgAuth.set_caption("Account Login")
 	dlgAuth.set_message("Logging in as %s..." % username)
+
+func change_bgm(song):
+	segue=song
+
+func onNewSong(s):
+	print("bgm changed to: %s" % s.get_path())
 
 func _ready():
 	window_status()
@@ -82,17 +148,19 @@ func _ready():
 	get_tree().connect("connection_failed",self,"onConnFail")
 	get_tree().connect("server_disconnected",self,"onDisconnect")
 
+	connect("SongChanged",self,"onNewSong")
+	change_bgm(resources['bgm/lobby'])
+
 	server=SProxy.instance()
 	server.set_name(str(SERVER_ID))
 	lobby.add_child(server)
-	bgm.set_stream(resources['bgm/lobby'])
-	bgm.play()
 	upstream=NetworkedMultiplayerENet.new()
 	window_status("Connecting")
 	dlgLogin.nologin(true)
 	upstream.create_client(server_addr,server_port)
 	get_tree().set_network_peer(upstream)
 	dlgAuth.hide()
+	dlgMotd.hide()
 	dlgLogin.set_hidden(false)
 
 	set_process(true)

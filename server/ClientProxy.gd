@@ -45,6 +45,10 @@ func hello():
 	# handshake ("server is ready")
 	rpc_id(net_id,"hello",1)
 
+func motd(msg):
+	# send MOTD
+	rpc_id(net_id,"motd",1,msg)
+
 func _ready():
 	pass
 
