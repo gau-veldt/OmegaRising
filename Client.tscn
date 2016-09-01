@@ -1,6 +1,19 @@
-[gd_scene load_steps=2 format=1]
+[gd_scene load_steps=6 format=1]
 
 [ext_resource path="res://Client.gd" type="Script" id=1]
+[ext_resource path="res://Login.tscn" type="PackedScene" id=2]
+[ext_resource path="res://LoginStatus.gd" type="Script" id=3]
+
+[sub_resource type="CanvasItemShaderGraph" id=1]
+
+_code = { "fragment":"uniform color Color=vec4(0,0,0,1);\nvec3 nd3sl0=Color.rgb;\nfloat nd3sl1=Color.a;\nCOLOR.rgb=nd3sl0;\nCOLOR.a=nd3sl1;\n", "fragment_ofs":0, "light":"", "light_ofs":0, "vertex":"", "vertex_ofs":0 }
+_data = { "shaders":[ [ 0, 33, Vector2( 350, 40 ), null, null, [  ], 1, 0, Vector2( 50, 40 ), null, null, [  ] ], [ 0, 33, Vector2( 460, 40 ), null, null, [ 0, 3, 0, 1, 3, 1 ], 1, 0, Vector2( 50, 40 ), null, null, [  ], 3, 28, Vector2( 220, 60 ), "Color", Color( 0, 0, 0, 1 ), [  ] ], [ 0, 33, Vector2( 350, 40 ), null, null, [  ], 1, 0, Vector2( 50, 40 ), null, null, [  ] ] ] }
+
+[sub_resource type="CanvasItemMaterial" id=2]
+
+shader/shader = SubResource( 1 )
+shader/shading_mode = 0
+shader_param/Color = Color( 0.501961, 0.627451, 0.878431, 0.815686 )
 
 [node name="Peer" type="Node"]
 
@@ -30,6 +43,101 @@ margin/top = 0.0
 margin/right = 1280.0
 margin/bottom = 720.0
 
+[node name="Login" parent="View2D/HUD" instance=ExtResource( 2 )]
+
+visibility/visible = false
+margin/left = 32.0
+margin/top = 32.0
+margin/right = 666.0
+margin/bottom = 305.0
+
+[node name="LoginStatus" type="Panel" parent="View2D/HUD"]
+
+anchor/left = 3
+anchor/top = 3
+anchor/right = 3
+anchor/bottom = 3
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 300.0
+margin/top = 80.0
+margin/right = -300.0
+margin/bottom = -80.0
+script/script = ExtResource( 3 )
+
+[node name="head" type="Panel" parent="View2D/HUD/LoginStatus"]
+
+material/material = SubResource( 2 )
+anchor/right = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 0.0
+margin/bottom = 32.0
+
+[node name="title" type="Label" parent="View2D/HUD/LoginStatus"]
+
+anchor/left = 3
+anchor/right = 3
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 250.0
+margin/top = 8.0
+margin/right = -250.0
+margin/bottom = 32.0
+custom_colors/font_color = Color( 0.627451, 1, 0, 1 )
+custom_colors/font_color_shadow = Color( 0, 0.498039, 0, 1 )
+align = 1
+valign = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="dismiss" type="Button" parent="View2D/HUD/LoginStatus"]
+
+anchor/left = 3
+anchor/top = 1
+anchor/right = 3
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 75.0
+margin/top = 32.0
+margin/right = -75.0
+margin/bottom = 8.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Dismiss"
+flat = false
+
+[node name="msg" type="Label" parent="View2D/HUD/LoginStatus"]
+
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 32.0
+margin/top = 40.0
+margin/right = 32.0
+margin/bottom = 40.0
+align = 1
+valign = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
 [node name="index" type="Node" parent="."]
 
 [node name="Account" type="Node" parent="index"]
@@ -39,5 +147,9 @@ margin/bottom = 720.0
 [node name="Mob" type="Node" parent="index"]
 
 [node name="NPC" type="Node" parent="index"]
+
+[connection signal="DoLogin" from="View2D/HUD/Login" to="." method="requestLogin"]
+
+[connection signal="pressed" from="View2D/HUD/LoginStatus/dismiss" to="View2D/HUD/LoginStatus" method="onDismiss"]
 
 

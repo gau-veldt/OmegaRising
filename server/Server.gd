@@ -2,7 +2,6 @@
 extends Node
 
 var serverVersion=[0,1,0,"pre_alpha"]
-var sendSize=4096
 var serverPort=4000
 var serverSalt='@@@@@@@@'
 var worldTime=0
