@@ -2,6 +2,7 @@
 extends Node
 
 onready var server=get_node("/root/Peer")
+onready var persist=get_node("/root/persist")
 
 #	server's RPC endpoint
 #		- net_id=1
@@ -16,6 +17,37 @@ onready var server=get_node("/root/Peer")
 
 remote func hello(id):
 	server.logMessage("got client %d hello" % id)
+
+const LOGIN_OK			=0
+const LOGIN_INVALID		=1
+const LOGIN_BADACCT		=2
+const LOGIN_REFUSED		=3
+const LOGIN_SERVERR		=4
+var login_responders={}
+remote func insecure_login(id,username,passwd):
+	if !login_responders.has(id):
+		var code=LOGIN_INVALID
+		var client=get_node("/root/lobby/%d" % id)
+		var accts=persist.get_gob_index('Account').get_children()
+		var phash=(server.serverSalt+passwd).sha256_text()
+		var tm=Timer.new()
+		self.add_child(tm)
+		tm.set_name("login_responder_%d" % id)
+		login_responders[id]=tm
+		tm.set_wait_time(5)
+		tm.set_one_shot(true)
+		tm.start()
+		for each in accts:
+			var auser=each.read("username")
+			var apass=each.read("password")
+			if auser==username and apass==phash:
+				code=LOGIN_OK
+				break
+		tm.connect("timeout",client,"login_response",[code,self])
+
+func login_cleanup(id):
+	self.remove_child(login_responders[id])
+	login_responders.erase(id)
 
 func _ready():
 	pass

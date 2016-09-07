@@ -25,6 +25,7 @@ onready var index=get_node("/root/Peer/index")
 # private (client) objects
 var resources={}
 onready var bgm=get_node("/root/Peer/bgm")
+onready var login_timer=get_node("/root/Peer/LoginTimer")
 onready var hud=get_node("/root/Peer/View2D/HUD")
 onready var dlgLogin=hud.get_node("Login")
 onready var dlgAuth=hud.get_node("LoginStatus")
@@ -42,6 +43,8 @@ func onConnect():
 	client_id=get_tree().get_network_unique_id()
 	client=CHost.instance()
 	client.connect("MOTD",self,"onChangeMOTD")
+	client.connect("LoginOK",self,"onLoginOK")
+	client.connect("LoginFail",self,"onLoginFail")
 	client.set_name(str(client_id))
 	lobby.add_child(client)
 	server.hello(client_id)
@@ -63,6 +66,7 @@ func onConnFail():
 	get_tree().quit()
 
 func onDisconnect():
+	login_timer.stop()
 	change_bgm(resources['bgm/lobby'])
 	server.queue_free()
 	client.queue_free()
@@ -126,13 +130,35 @@ func _process(delta):
 	if !Input.is_action_pressed("fullscreen_toggle") and debounce_F11:
 		debounce_F11=false
 
+var req_user
 func requestLogin(username,password):
+	req_user=username
 	window_status("Log on %s" % username)
 	dlgLogin.hide()
 	dlgMotd.hide()
 	dlgAuth.show()
 	dlgAuth.set_caption("Account Login")
 	dlgAuth.set_message("Logging in as %s..." % username)
+	server.request_login(client_id,username,password)
+	login_timer.set_one_shot(true)
+	login_timer.set_wait_time(30)
+	login_timer.connect("timeout",client,"login_response",[1,-1])
+	login_timer.start()
+
+func onLoginFail(code,why):
+	dlgAuth.set_caption("Account Login Failure")
+	dlgAuth.set_message(why)
+	dlgAuth.set_dismiss(true,"Okay")
+	yield(dlgAuth,"Dismiss")
+	dlgAuth.hide()
+	dlgMotd.show()
+	dlgLogin.show()
+
+func onLoginOK():
+	change_bgm(resources['bgm/menu'])
+	yield(self,"SongChanged")
+	window_status(" %s (logged in)" % req_user)
+	dlgAuth.hide()
 
 func change_bgm(song):
 	segue=song

@@ -49,6 +49,18 @@ func motd(msg):
 	# send MOTD
 	rpc_id(net_id,"motd",1,msg)
 
+func login_response(code,srv):
+	if code==0:
+		srv.server.logMessage("Client %d logged in." % net_id)
+	else:
+		if code==1:
+			srv.server.logMessage("Client %d authentication failure." % net_id)
+		else:
+			srv.server.logMessage("Client %d login failure (err=%d)." % [net_id,code])
+	# login response
+	rpc_id(net_id,"login_response",1,code)
+	srv.login_cleanup(net_id)
+
 func _ready():
 	pass
 
