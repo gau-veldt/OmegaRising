@@ -1,6 +1,7 @@
 
 extends "GOB.gd"
 
+
 var username
 var handle
 var email
@@ -10,6 +11,23 @@ var allowed_ip
 var characters
 var friend=[]
 var ignore=[]
+
+# Who is logged onto the Account (non-persistent)
+var _session=null
+func _set_owner(client=null):
+	_session=client
+func _is_owner(peer):
+	if peer==_session:
+		return true
+	return false
+func logout():
+	_session=null
+
+remote func get_attr(peer,key):
+	if _is_owner(peer):
+		_send(peer,key,self.read(key))
+func _send(dest_peer,key,value):
+	rpc_id(dest_peer,"attr_is",1,key,value)
 
 func type():
 	return "Account"

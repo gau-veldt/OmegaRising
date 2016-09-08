@@ -2,7 +2,7 @@
 extends Node
 
 signal MOTD(msg)
-signal LoginOK()
+signal LoginOK(acctID)
 signal LoginFail(code,reason)
 
 onready var login_timer=get_node("/root/Peer/LoginTimer")
@@ -32,12 +32,12 @@ const LOGIN_ERR={
 	LOGIN_SERVERR	:	"Login failed due to server error.",
 	LOGIN_TIMEOUT	:	"Server failed to respond."
 }
-remote func login_response(id,status):
+remote func login_response(id,status,acctID):
 	login_timer.stop()
 	login_timer.disconnect("timeout",self,"login_response")
 	if id==1:
 		if status==LOGIN_OK:
-			emit_signal("LoginOK")
+			emit_signal("LoginOK",acctID)
 		else:
 			emit_signal("LoginFail",status,LOGIN_ERR[status])
 	else:

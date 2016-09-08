@@ -27,6 +27,7 @@ var login_responders={}
 remote func insecure_login(id,username,passwd):
 	if !login_responders.has(id):
 		var code=LOGIN_INVALID
+		var acct=null
 		var client=get_node("/root/lobby/%d" % id)
 		var accts=persist.get_gob_index('Account').get_children()
 		var phash=(server.serverSalt+passwd).sha256_text()
@@ -42,8 +43,10 @@ remote func insecure_login(id,username,passwd):
 			var apass=each.read("password")
 			if auser==username and apass==phash:
 				code=LOGIN_OK
+				acct=each
+				acct._set_owner(id)
 				break
-		tm.connect("timeout",client,"login_response",[code,self])
+		tm.connect("timeout",client,"login_response",[code,self,acct])
 
 func login_cleanup(id):
 	self.remove_child(login_responders[id])

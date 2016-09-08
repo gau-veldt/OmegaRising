@@ -15,12 +15,16 @@ var server_port=4000
 var CHost=load("ClientHost.tscn")
 var client_id=0
 var client=null
+var gob_proxy={
+	'Account'		:	load("AccountProxy.tscn")
+}
 
 # reference to the object lobby
 onready var lobby=get_node("/root/lobby")
 
 # game object directory
 onready var index=get_node("/root/Peer/index")
+var index_bytype={}
 
 # private (client) objects
 var resources={}
@@ -31,10 +35,16 @@ onready var dlgLogin=hud.get_node("Login")
 onready var dlgAuth=hud.get_node("LoginStatus")
 onready var dlgMotd=hud.get_node("motd_bg")
 onready var motd=dlgMotd.get_node("motd")
+var userAcct=null
 
 func init_client_resources():
 	resources['bgm/lobby']=load("user://bgm/lobby.ogg")
 	resources['bgm/menu']=load("user://bgm/menu.ogg")
+
+func populate_index():
+	var types=index.get_children()
+	for each in types:
+		index_bytype[each.get_name()]=each
 
 func onConnect():
 	window_status("Lobby")
@@ -66,12 +76,14 @@ func onConnFail():
 	get_tree().quit()
 
 func onDisconnect():
+	userAcct=null
 	login_timer.stop()
-	change_bgm(resources['bgm/lobby'])
+	clear_gobs()
 	server.queue_free()
 	client.queue_free()
 	get_tree().set_network_peer(null)
 	window_status("Disconnected")
+	change_bgm(resources['bgm/lobby'])
 	dlgLogin.hide()
 	dlgMotd.hide()
 	dlgAuth.set_hidden(false)
@@ -137,6 +149,7 @@ func requestLogin(username,password):
 	dlgLogin.hide()
 	dlgMotd.hide()
 	dlgAuth.show()
+	dlgAuth.set_dismiss(false)
 	dlgAuth.set_caption("Account Login")
 	dlgAuth.set_message("Logging in as %s..." % username)
 	server.request_login(client_id,username,password)
@@ -154,11 +167,18 @@ func onLoginFail(code,why):
 	dlgMotd.show()
 	dlgLogin.show()
 
-func onLoginOK():
+func onLoginOK(acctID):
 	change_bgm(resources['bgm/menu'])
 	yield(self,"SongChanged")
 	window_status(" %s (logged in)" % req_user)
 	dlgAuth.hide()
+	userAcct=gob_proxy['Account'].instance()
+	userAcct.set_name(acctID)
+	userAcct.set_peer(client_id)
+	index_bytype['Account'].add_child(userAcct)
+	userAcct.read("props")
+	yield(userAcct,"notify_props")
+	print("userAcct: props=%s" % str(userAcct.attrs['props']))
 
 func change_bgm(song):
 	segue=song
@@ -167,6 +187,7 @@ func onNewSong(s):
 	print("bgm changed to: %s" % s.get_path())
 
 func _ready():
+	populate_index()
 	window_status()
 	init_client_resources()
 
@@ -196,3 +217,9 @@ func window_status(msg=""):
 	if msg!="":
 		title+=": %s" % msg
 	OS.set_window_title(title)
+
+func clear_gobs():
+	for group in index_bytype.keys():
+		var childs=index_bytype[group].get_children()
+		for each in childs:
+			each.queue_free()

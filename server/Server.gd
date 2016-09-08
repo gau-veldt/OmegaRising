@@ -101,6 +101,7 @@ func onClientConnect(id):
 	logMessage("Client %d connected" % id)
 
 func onClientDrop(id):
+	logout_on_drop(id)
 	var pxy=lobby[id]
 	lobby.erase(id)
 	pxy.queue_free()
@@ -158,3 +159,11 @@ func _ready():
 
 	set_process(true)
 
+func logout_on_drop(id):
+	var accts=acct_idx.get_children()
+	for each in accts:
+		if each._is_owner(id):
+			each.logout()
+			var handle=each.read("handle")
+			var user=each.read("username")
+			logMessage("%s@%s logged out due to dropped client %d." % [handle,user,id])
