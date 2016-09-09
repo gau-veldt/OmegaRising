@@ -1,6 +1,7 @@
 
 extends Node
 
+signal StopWatch(label)
 signal SongChanged(song)
 
 var GameName="Omega Rising"
@@ -63,6 +64,16 @@ func onConnect():
 func onChangeMOTD(msg):
 	motd.set_bbcode(msg)
 
+func fade_quit():
+	if segue_cur!=null:
+		change_bgm()
+		yield(self,"SongChanged")
+	get_tree().quit()
+
+func _notification(what):
+	if what==MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		fade_quit()
+
 func onConnFail():
 	change_bgm(resources['bgm/lobby'])
 	window_status("Failed to Connect")
@@ -73,7 +84,7 @@ func onConnFail():
 	dlgAuth.set_message("Please try again later.\n")
 	dlgAuth.set_dismiss(true,"Quit")
 	yield(dlgAuth,"Dismiss")
-	get_tree().quit()
+	fade_quit()
 
 func onDisconnect():
 	userAcct=null
@@ -91,15 +102,19 @@ func onDisconnect():
 	dlgAuth.set_message("Please try again later.")
 	dlgAuth.set_dismiss(true,"Quit")
 	yield(dlgAuth,"Dismiss")
-	get_tree().quit()
+	fade_quit()
 
-var segue_rate=1.5
+export var segue_rate=0.5
 var segue=null
 var segue_cur=null
 var segue_pos=0
 var fullscreen=false
 var debounce_F11
+var elapsed=0
+var flags={}
 func _process(delta):
+	elapsed+=delta
+
 	#####################
 	#  BGM transitions  #
 	#####################
@@ -108,6 +123,8 @@ func _process(delta):
 	if segue!=null:
 		if segue_cur==null:
 			segue_cur=segue
+			if segue_cur==bgm_silence:
+				segue_cur=null
 			segue=null
 			segue_pos=0
 			bgm.set_stream(segue_cur)
@@ -115,10 +132,12 @@ func _process(delta):
 				bgm.set_volume(1.0)
 				bgm.play()
 				bgm.set_loop(true)
-				emit_signal("SongChanged",segue_cur)
+			emit_signal("SongChanged",segue_cur)
 		else:
 			if segue_pos>=segue_rate:
 				segue_cur=segue
+				if segue_cur==bgm_silence:
+					segue_cur=null
 				segue=null
 				segue_pos=0
 				bgm.set_stream(segue_cur)
@@ -126,7 +145,7 @@ func _process(delta):
 					bgm.set_volume(1.0)
 					bgm.play()
 					bgm.set_loop(true)
-					emit_signal("SongChanged",segue_cur)
+				emit_signal("SongChanged",segue_cur)
 			else:
 				var vol=1.0-(min(segue_pos,1.5)/segue_rate)
 				bgm.set_volume(vol)
@@ -180,11 +199,18 @@ func onLoginOK(acctID):
 	yield(userAcct,"notify_props")
 	print("userAcct: props=%s" % str(userAcct.attrs['props']))
 
-func change_bgm(song):
-	segue=song
+var bgm_silence=AudioStreamOGGVorbis.new()
+func change_bgm(song=null):
+	if song!=null:
+		segue=song
+	else:
+		segue=bgm_silence
 
 func onNewSong(s):
-	print("bgm changed to: %s" % s.get_path())
+	if s!=null:
+		print("bgm changed to: %s" % s.get_path())
+	else:
+		print("bgm silenced")
 
 func _ready():
 	populate_index()
@@ -211,6 +237,7 @@ func _ready():
 	dlgLogin.set_hidden(false)
 
 	set_process(true)
+	get_tree().set_auto_accept_quit(false)
 
 func window_status(msg=""):
 	var title=GameName

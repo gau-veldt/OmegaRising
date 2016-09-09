@@ -1,0 +1,116 @@
+[gd_scene load_steps=2 format=1]
+
+[ext_resource path="res://ChrTemplateEdit.gd" type="Script" id=1]
+
+[node name="ChrTemplateEdit" type="Control"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 980.0
+margin/bottom = 600.0
+script/script = ExtResource( 1 )
+
+[node name="save" type="Button" parent="."]
+
+anchor/top = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 24.0
+margin/right = 160.0
+margin/bottom = 0.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Save Character Form"
+flat = false
+
+[node name="revert" type="Button" parent="."]
+
+anchor/top = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 170.0
+margin/top = 24.0
+margin/right = 330.0
+margin/bottom = 0.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Revert"
+flat = false
+
+[node name="node_menu" type="PopupMenu" parent="."]
+
+visibility/visible = false
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 20.0
+margin/bottom = 20.0
+popup/exclusive = false
+items = [ "Add Selectable Option", null, false, false, false, 0, 0, null, "", false, "Add Choose-One", null, false, false, false, 1, 0, null, "", false, "Add Choose-Multi", null, false, false, false, 2, 0, null, "", false, "Add IncludeRule", null, false, false, false, 3, 0, null, "", false, "Add ExcludeRule", null, false, false, false, 4, 0, null, "", false, "Add TestAttribute", null, false, false, false, 5, 0, null, "", false, "Add String", null, false, false, false, 6, 0, null, "", false, "Add Integer Range", null, false, false, false, 7, 0, null, "", false, "Add Decimal Range", null, false, false, false, 8, 0, null, "", false ]
+
+[node name="view" type="GraphEdit" parent="."]
+
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 0.0
+margin/bottom = 30.0
+
+[node name="Character" type="GraphNode" parent="view"]
+
+hint/tooltip = "This box represents the final character selection form.\nAll attributes connected to it will be conveyed to clients for character creation and the\nvalues supplied are validated accordingly at the server whenever a client posts a character\ncreation request."
+focus/ignore_mouse = false
+focus/stop_mouse = false
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 180.0
+margin/bottom = 120.0
+title = "Character Template"
+show_close = false
+slot/0/left_enabled = false
+slot/0/left_type = 0
+slot/0/left_color = Color( 1, 1, 1, 1 )
+slot/0/right_enabled = false
+slot/0/right_type = 0
+slot/0/right_color = Color( 1, 1, 1, 1 )
+
+[node name="attributes" type="Label" parent="view/Character"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 16.0
+margin/top = 24.0
+margin/right = 164.0
+margin/bottom = 38.0
+text = "Attributes"
+valign = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+

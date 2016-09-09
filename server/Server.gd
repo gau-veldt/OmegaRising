@@ -18,7 +18,6 @@ onready var quitDlg=get_node("QuitQuestion")
 onready var active=get_node("/root/lobby")
 onready var server_node=load("res://ServerNode.tscn")
 var server_iface=null
-var manifest={}
 
 func versionString():
 	return "%d.%d.%03d-%s" % serverVersion
@@ -108,6 +107,7 @@ func onClientDrop(id):
 	logMessage("Client %d disconnected" % id)
 
 func _ready():
+	var err
 	var quitBtn=quitDlg.get_ok()
 	quitBtn.connect("pressed",self,"onStopServer")
 	quitBtn.set_text("Quit")
@@ -116,20 +116,6 @@ func _ready():
 
 	logMessage("Omega Rising server (Version %s) starting up" % versionString())
 	logMessage("Server running via Godot version %s" % OS.get_engine_version()['string'])
-	logMessage("Loading asset manifest...")
-	manifest.clear()
-	var mf=ConfigFile.new()
-	mf.load("user://manifest")
-	var aCount=mf.get_section_keys("Assets").size()
-	logMessage("Game currently has %d asset%s." % [aCount,pluralAppend(aCount)] )
-	var info
-	for each in mf.get_section_keys("Assets"):
-		info=mf.get_value("Assets",each,{})
-		manifest[each]=info
-	var err=mf.save("user://manifest")
-	if err!=OK:
-		logMessage("PANIC: Server directory isn't writable")
-		onStopServer()
 
 	var motdF=File.new()
 	err=motdF.open("user://motd",File.READ)

@@ -18,6 +18,7 @@ shader_param/Color = Color( 0.501961, 0.627451, 0.878431, 0.815686 )
 [node name="Peer" type="Node"]
 
 script/script = ExtResource( 1 )
+segue_rate = 0.5
 
 [node name="bgm" type="StreamPlayer" parent="."]
 
