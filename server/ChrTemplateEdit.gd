@@ -23,6 +23,47 @@ var node_tcount={}
 
 var chrTpl=null
 
+func countforType(typeKey):
+	var tcount=0
+	for each in node_type.keys():
+		if node_type[each]==typeKey:
+			tcount+=1
+	return tcount
+
+func title2index(title):
+	var ary=title.split("_")
+	return int(ary[1])
+
+func make_title(type,idx):
+	return "%s_%d" % [type,idx]
+
+func renumberForDelete(node):
+	# rename node to delete so it is
+	# highest-numbered after renumbering
+	# all nodes of node to delete's type
+	var type=node_type[node]
+	var tcount=node_tcount[type]
+	var gap=title2index(node.get_title())
+	if gap!=tcount:
+		# resetting title as if object was
+		# being created rather than deleted
+		# makes it highest-numbered
+		var high=tcount+1
+		var hi_title=make_title(type,high)
+		node.set_title(hi_title)
+		var bytitle={}
+		for each in node_type:
+			if node_type[each]==type:
+				bytitle[each.get_title()]=each
+		var t_old
+		var t_new
+		var ob
+		for space in range(gap,high):
+			t_old=make_title(type,space+1)
+			t_new=make_title(type,space)
+			ob=bytitle[t_old]
+			ob.set_title(t_new)
+
 func onPopupNodeMenu(pos):
 	nodeMenu.set_pos(pos)
 	nodeMenu.popup()
@@ -40,14 +81,18 @@ func onNodeMenuChoice(opt):
 	var type=menuLabels[opt]
 	node_type[ob]=type
 	node_tcount[type]+=1
-	ob.set_title("%s_%d" % [type,node_tcount[type]])
+	ob.set_title(make_title(type,node_tcount[type]))
+	ob.set_name(ob.get_title())
 	grid.add_child(ob)
 	ob.set_show_close_button(true)
 	ob.connect("close_request",self,"onNodeClose",[ob])
 	callv("onMenu_%s" % menuLabels[opt],[ob,nodeMenu.get_pos()])
 
 func onNodeClose(ob):
+	renumberForDelete(ob)
+	var type=node_type[ob]
 	node_type.erase(ob)
+	node_tcount[type]-=1
 	ob.queue_free()
 
 func onMenu_Option(ob,pos):
@@ -67,7 +112,6 @@ func onMenu_ChooseOne(ob,pos):
 	ob.set_custom_minimum_size(Vector2(0,64))
 	ob.add_child(txt)
 	txt=Label.new()
-	txt.set_name("")
 	ob.add_child(txt)
 	ob.set_offset(pos)
 	ob.set_slot(0,true,PORT_OPTION,COLOR_OPTION,true,PORT_ATTR,COLOR_ATTR)
@@ -82,7 +126,6 @@ func onMenu_ChooseMulti(ob,pos):
 	ob.set_custom_minimum_size(Vector2(0,64))
 	ob.add_child(txt)
 	txt=Label.new()
-	txt.set_name("")
 	ob.add_child(txt)
 	ob.set_offset(pos)
 	ob.set_slot(0,true,PORT_OPTION,COLOR_OPTION,true,PORT_ATTR,COLOR_ATTR)
@@ -221,6 +264,15 @@ func onDetachNode(org,org_slot,dest,dest_slot):
 
 func onRevert():
 	# clear out the current graph
+	var clist=grid.get_connection_list()
+	for conn in clist:
+		grid.disconnect_node(conn['from'],conn['from_port'],conn['to'],conn['to_port'])
+	# mangle nodenames since queue_free only happens after
+	# we're finished and thus the old GraphNodes won't yet be gone
+	var gonzo=1
+	for each in node_type:
+		each.set_name("*gonzo*%d*" % gonzo)
+		gonzo+=1
 	finalNode.set_offset(Vector2(64,64))
 	var nodes=node_type.keys()
 	for each in nodes:
@@ -234,16 +286,55 @@ func onRevert():
 	var template=chrTpl.read("template")
 	var tnode
 	var vpos
-	if template.has("Template"):
-		tnode=template["Template"]
-		vpos=persist.str2vec(tnode["pos"])
-		finalNode.set_offset(vpos)
+	var ob
+	# first pass: generate GraphNodes
+	for type in template.keys():
+		if type=="Template":
+			tnode=template["Template"]
+			vpos=persist.str2vec(tnode['pos'])
+			finalNode.set_offset(vpos)
+		else:
+			for title in template[type]:
+				tnode=template[type][title]
+				ob=GraphNode.new()
+				vpos=persist.str2vec(tnode['pos'])
+				node_type[ob]=type
+				node_tcount[type]+=1
+				ob.set_title(title)
+				ob.set_name(title)
+				grid.add_child(ob)
+				ob.set_show_close_button(true)
+				ob.connect("close_request",self,"onNodeClose",[ob])
+				callv("onMenu_%s" % type,[ob,vpos])
+	# seocnd pass: set connections
+	var rawcon=template['Template']['connections']
+	var connections={}
+	connections.parse_json(rawcon)
+	print("Load: ",connections)
+	for entry in connections['list']:
+		print("  Conn: ",entry)
+		grid.connect_node(entry['from'],entry['from_port'],entry['to'],entry['to_port'])
 
 func onSave():
 	var template={}
 	template["Template"]={}
 	template["Template"]["pos"]=finalNode.get_offset()
+	var connections={'list':grid.get_connection_list()}
+	print("Save: ",connections)
+	template["Template"]["connections"]=connections.to_json()
+	var type
+	for type in menuLabels:
+		template[type]={}
+	var title
+	var vpos
+	for ob in node_type.keys():
+		type=node_type[ob]
+		title=ob.get_title()
+		vpos=ob.get_offset()
+		template[type][title]={}
+		template[type][title]['pos']=vpos
 	chrTpl.write("template",template)
+	
 
 func _ready():
 	for each in menuLabels:
