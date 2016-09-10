@@ -211,3 +211,16 @@ func _ready():
 	validate_dir()
 	load_all()
 	loadGameScripts()
+
+func str2vec(orgstr):
+	var lstr=str(orgstr).right(1)
+	lstr=lstr.left(lstr.length()-1)
+	lstr=lstr.replace(" ","")
+	var lary=[]
+	for each in lstr.split(","):
+		lary.append(float(each))
+	var len=lary.size()
+	if (len==1): return lary[0]
+	if (len==2): return Vector2(lary[0],lary[1])
+	if (len==3): return Vector3(lary[0],lary[1],lary[2])
+	return lary
