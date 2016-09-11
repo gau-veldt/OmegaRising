@@ -1,7 +1,6 @@
 
 extends Node
 
-signal StopWatch(label)
 signal SongChanged(song)
 
 var GameName="Omega Rising"

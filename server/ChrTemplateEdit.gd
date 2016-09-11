@@ -238,6 +238,46 @@ func onMenu_FloatRange(ob,pos):
 	ob.set_offset(pos)
 	ob.set_slot(0,false,PORT_NULL,COLOR_NULL,true,PORT_ATTR,COLOR_ATTR)
 
+var nodeCodecs={
+	'Option':		'Named',
+	'ChooseOne':	'Named',
+	'ChooseMulti':	'Named',
+	'Include':		'',
+	'Exclude':		'',
+	'Test':			'',
+	'String':		'Named',
+	'IntRange':		'NamedInt',
+	'FloatRange':	'NamedFloat'
+}
+func encodeNamed(ob):
+	return {
+		'name':ob.get_node("caption").get_text()
+	}
+func decodeNamed(ob,data):
+	ob.get_node("caption").set_text(str(data['name']))
+
+func encodeNamedFloat(ob):
+	return {
+		'name':ob.get_node("caption").get_text(),
+		'min':float(ob.get_node("min").get_text()),
+		'max':float(ob.get_node("max").get_text())
+	}
+func decodeNamedFloat(ob,data):
+	ob.get_node("caption").set_text(str(data['name']))
+	ob.get_node("min").set_text(str(float(data['min'])))
+	ob.get_node("max").set_text(str(float(data['max'])))
+
+func encodeNamedInt(ob):
+	return {
+		'name':ob.get_node("caption").get_text(),
+		'min':int(ob.get_node("min").get_text()),
+		'max':int(ob.get_node("max").get_text())
+	}
+func decodeNamedInt(ob,data):
+	ob.get_node("caption").set_text(str(data['name']))
+	ob.get_node("min").set_text(str(int(data['min'])))
+	ob.get_node("max").set_text(str(int(data['max'])))
+
 func onAttachNode(org,org_slot,dest,dest_slot):
 	var org_ob=grid.get_node(org)
 	var org_type=node_type[org_ob]
@@ -287,6 +327,7 @@ func onRevert():
 	var tnode
 	var vpos
 	var ob
+	var data={}
 	# first pass: generate GraphNodes
 	for type in template.keys():
 		if type=="Template":
@@ -298,6 +339,7 @@ func onRevert():
 				tnode=template[type][title]
 				ob=GraphNode.new()
 				vpos=persist.str2vec(tnode['pos'])
+				data.parse_json(tnode['data'])
 				node_type[ob]=type
 				node_tcount[type]+=1
 				ob.set_title(title)
@@ -306,13 +348,13 @@ func onRevert():
 				ob.set_show_close_button(true)
 				ob.connect("close_request",self,"onNodeClose",[ob])
 				callv("onMenu_%s" % type,[ob,vpos])
+				if nodeCodecs[type]!='':
+					callv("decode%s" % nodeCodecs[type],[ob,data])
 	# seocnd pass: set connections
 	var rawcon=template['Template']['connections']
 	var connections={}
 	connections.parse_json(rawcon)
-	print("Load: ",connections)
 	for entry in connections['list']:
-		print("  Conn: ",entry)
 		grid.connect_node(entry['from'],entry['from_port'],entry['to'],entry['to_port'])
 
 func onSave():
@@ -320,19 +362,27 @@ func onSave():
 	template["Template"]={}
 	template["Template"]["pos"]=finalNode.get_offset()
 	var connections={'list':grid.get_connection_list()}
-	print("Save: ",connections)
 	template["Template"]["connections"]=connections.to_json()
 	var type
 	for type in menuLabels:
 		template[type]={}
 	var title
 	var vpos
+	var data
 	for ob in node_type.keys():
+		data={}
 		type=node_type[ob]
 		title=ob.get_title()
 		vpos=ob.get_offset()
+		if nodeCodecs[type]=='Named':
+			data=encodeNamed(ob)
+		if nodeCodecs[type]=='NamedFloat':
+			data=encodeNamedFloat(ob)
+		if nodeCodecs[type]=='NamedInt':
+			data=encodeNamedInt(ob)
 		template[type][title]={}
 		template[type][title]['pos']=vpos
+		template[type][title]['data']=data.to_json()
 	chrTpl.write("template",template)
 	
 
