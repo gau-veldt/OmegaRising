@@ -177,6 +177,7 @@ func onMenu_Test(ob,pos):
 	txt.set_text("selected")
 	ob.add_child(txt)
 	var neg=Button.new()
+	neg.set_name("btnInvert")
 	neg.set_toggle_mode(true)
 	neg.set_text("Invert")
 	neg.connect("toggled",self,"onTestToggle",[ob])
@@ -244,11 +245,23 @@ var nodeCodecs={
 	'ChooseMulti':	'Named',
 	'Include':		'',
 	'Exclude':		'',
-	'Test':			'',
+	'Test':			'Tester',
 	'String':		'Named',
 	'IntRange':		'NamedInt',
 	'FloatRange':	'NamedFloat'
 }
+func encodeTester(ob):
+	return {
+		'inverted':ob.get_node("result").get_text()=="unselected"
+	}
+func decodeTester(ob,data):
+	if data['inverted']:
+		ob.get_node("btnInvert").set_pressed(true)
+		ob.get_node("result").set_text("unselected")
+	else:
+		ob.get_node("btnInvert").set_pressed(false)
+		ob.get_node("result").set_text("selected")
+
 func encodeNamed(ob):
 	return {
 		'name':ob.get_node("caption").get_text()
@@ -380,11 +393,123 @@ func onSave():
 			data=encodeNamedFloat(ob)
 		if nodeCodecs[type]=='NamedInt':
 			data=encodeNamedInt(ob)
+		if nodeCodecs[type]=='Tester':
+			data=encodeTester(ob)
 		template[type][title]={}
 		template[type][title]['pos']=vpos
 		template[type][title]['data']=data.to_json()
 	chrTpl.write("template",template)
-	
+	convertGraph()
+
+var theTemplate={}
+func getTemplate():
+	return theTemplate
+func convertGraph():
+	var edges=grid.get_connection_list()
+	var type
+	var name
+	var blocks={}
+	theTemplate.clear()
+	theTemplate['Attributes']=[]
+	for ob in node_type.keys():
+		type=node_type[ob]
+		name=ob.get_title()
+		blocks[name]={'type':type,'ob':ob,'in':{},'out':{}}
+	for edge in edges:
+		if edge['to']!='Character':
+			if !blocks[edge['to']]['in'].has(edge['to_port']):
+				blocks[edge['to']]['in'][edge['to_port']]=[{edge['from']:edge['from_port']}]
+			else:
+				blocks[edge['to']]['in'][edge['to_port']].append({edge['from']:edge['from_port']})
+		if edge['from']!='Character':
+			if !blocks[edge['from']]['out'].has(edge['from_port']):
+				blocks[edge['from']]['out'][edge['from_port']]=[{edge['to']:edge['to_port']}]
+			else:
+				blocks[edge['from']]['out'][edge['from_port']].append({edge['to']:edge['to_port']})
+	for edge in edges:
+		if edge['to']=='Character':
+			if edge['to_port']==0:
+				theTemplate['Attributes'].append(convertAttribute(edge,blocks))
+	print(theTemplate.to_json())
+func convertAttribute(attr,blocks):
+	var cvt={}
+	var what=attr['from']
+	var kind=blocks[what]['type']
+	var who=blocks[what]['ob']
+	var name=who.get_node('caption').get_text()
+	cvt[name]={'type':kind}
+	if kind in ['ChooseOne','ChooseMulti']:
+		cvt[name]['options']=convertOptions(what,blocks)
+	return cvt
+func convertOptions(attr,blocks):
+	var cvt=[]
+	var opt
+	var opt_block
+	var opt_node
+	var opt_name
+	var sources=blocks[attr]['in']
+	if sources.has(0):
+		for pair in sources[0]:
+			opt=pair.keys()[0]
+			opt_block=blocks[opt]
+			opt_node=opt_block['ob']
+			opt_name=opt_node.get_node("caption").get_text()
+			cvt.append({'always':opt_name})
+	if sources.has(1):
+		for pair in sources[1]:
+			opt=pair.keys()[0]
+			cvt.append(convertConditionalOption(opt,blocks))
+	return cvt
+func convertConditionalOption(opt,blocks):
+	var cvt={}
+	var opt_block=blocks[opt]
+	var opt_kind=opt_block['type']
+	var tests=[]
+	var test_attr
+	var test_opt
+	var cond_opts=[]
+	if opt_block['in'].has(0):
+		var blk
+		var blk_node
+		var opt_name
+		for pair in opt_block['in'][0]:
+			blk=blocks[pair.keys()[0]]
+			blk_node=blk['ob']
+			opt_name=blk_node.get_node('caption').get_text()
+			cond_opts.append(opt_name)
+	cvt[opt_kind]=cond_opts
+	var tests=[false]
+	if opt_block['in'].has(1):
+		tests=[]
+		var test
+		for pair in opt_block['in'][1]:
+			test=pair.keys()[0]
+			tests.append(convertTest(test,blocks))
+	cvt['when']=tests
+	return cvt
+func convertTest(test,blocks):
+	var cond={}
+	var test_blk=blocks[test]
+	var test_node=test_blk['ob']
+	var invert=test_node.get_node('result').get_text()=="unselected"
+	var test_attr=null
+	var test_opt=null
+	var inputs=test_blk['in']
+	if inputs.has(0):
+		var attr_blk=blocks[inputs[0][0].keys()[0]]
+		var attr_node=attr_blk['ob']
+		test_attr=attr_node.get_node("caption").get_text()
+	if inputs.has(1):
+		var opt_blk=blocks[inputs[1][0].keys()[0]]
+		var opt_node=opt_blk['ob']
+		test_opt=opt_node.get_node("caption").get_text()
+	if test_attr==null or test_opt==null:
+		cond=false
+	else:
+		cond['not']=invert
+		cond['attr']=test_attr
+		cond['option']=test_opt
+	return cond
 
 func _ready():
 	for each in menuLabels:
@@ -408,3 +533,4 @@ func _ready():
 
 	finalNode.set_slot(0,true,PORT_ATTR,COLOR_ATTR,false,PORT_NULL,COLOR_NULL)
 	onRevert()
+	convertGraph()
