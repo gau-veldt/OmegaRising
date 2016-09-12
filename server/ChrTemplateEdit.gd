@@ -410,7 +410,7 @@ func convertGraph():
 	var name
 	var blocks={}
 	theTemplate.clear()
-	theTemplate['Attributes']=[]
+	theTemplate['Attributes']={}
 	for ob in node_type.keys():
 		type=node_type[ob]
 		name=ob.get_title()
@@ -426,10 +426,16 @@ func convertGraph():
 				blocks[edge['from']]['out'][edge['from_port']]=[{edge['to']:edge['to_port']}]
 			else:
 				blocks[edge['from']]['out'][edge['from_port']].append({edge['to']:edge['to_port']})
+	var attr
+	var attr_name
+	var attr_def
 	for edge in edges:
 		if edge['to']=='Character':
 			if edge['to_port']==0:
-				theTemplate['Attributes'].append(convertAttribute(edge,blocks))
+				attr=convertAttribute(edge,blocks)
+				attr_name=attr.keys()[0]
+				attr_def=attr[attr_name]
+				theTemplate['Attributes'][attr_name]=attr_def
 	print(theTemplate.to_json())
 func convertAttribute(attr,blocks):
 	var cvt={}
