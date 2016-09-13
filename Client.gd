@@ -2,6 +2,7 @@
 extends Node
 
 signal SongChanged(song)
+signal ScreenShot(img)
 
 var GameName="Omega Rising"
 
@@ -144,6 +145,8 @@ var fullscreen=false
 var debounce_F11
 var elapsed=0
 var flags={}
+var debounce_F10
+var wait4shot=false
 func _process(delta):
 	elapsed+=delta
 
@@ -199,6 +202,21 @@ func _process(delta):
 			OS.set_window_fullscreen(fullscreen)
 	if !Input.is_action_pressed("fullscreen_toggle") and debounce_F11:
 		debounce_F11=false
+
+	#######################
+	#  Screenshot         #
+	#######################
+	if wait4shot:
+		var img=vp.get_screen_capture()
+		if img!=null:
+			wait4shot=null
+			emit_signal("ScreenShot",img)
+	if Input.is_action_pressed("screen_cap") and !debounce_F10:
+			debounce_F10=true
+			wait4shot=true
+			vp.queue_screen_capture()
+	if !Input.is_action_pressed("screen_cap") and debounce_F10:
+		debounce_F10=false
 
 var segue_hide_candy=false
 func segue_candy():
@@ -265,6 +283,11 @@ func onNewSong(s):
 		print("bgm silenced")
 
 func _ready():
+	var dir=Directory.new()
+	if !dir.dir_exists("user://screenshots"):
+		dir.make_dir("user://screenshots")
+	connect("ScreenShot",self,"save_screen")
+	
 	populate_index()
 	window_status()
 	init_client_resources()
@@ -304,3 +327,10 @@ func clear_gobs():
 		var childs=index_bytype[group].get_children()
 		for each in childs:
 			each.queue_free()
+
+func save_screen(img):
+	var fname="user://screenshots/screenshot_%08x%03d.png" % \
+		[OS.get_unix_time(),OS.get_ticks_msec()%1000]
+	img.save_png(fname)
+
+	print(fname)
