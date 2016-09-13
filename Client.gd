@@ -197,6 +197,9 @@ func onLoginOK(acctID):
 	userAcct.read("props")
 	yield(userAcct,"notify_props")
 	print("userAcct: props=%s" % str(userAcct.attrs['props']))
+	userAcct.get_cg_template()
+	yield(userAcct,"cg_template")
+	print("character template: %s" % userAcct.template.to_json())
 
 var bgm_silence=AudioStreamOGGVorbis.new()
 func change_bgm(song=null):

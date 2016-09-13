@@ -1,7 +1,6 @@
 
 extends "GOB.gd"
 
-
 var username
 var handle
 var email
@@ -23,6 +22,23 @@ func _is_owner(peer):
 func logout():
 	_session=null
 
+# Character creation/management
+onready var cg=get_node("/root/Peer/Tabber/Character Template")
+remote func get_cg_template(peer):
+	var cgProc="cg_template"
+	if _is_owner(peer):
+		var cg_template=cg.getTemplate()
+		if server.has_hook(cgProc):
+			var cg_copy={}
+			for each in cg_template.keys():
+				cg_copy[each]=cg_template[each]
+			server.call_hook(cgProc,[self,cg_copy])
+			cg_template=cg_copy
+		_send_var(peer,cgProc,cg_template)
+func _send_var(dest_peer,rpc_name,data):
+	rpc_id(dest_peer,rpc_name,1,data)
+
+# Account attribute access
 remote func get_attr(peer,key):
 	if _is_owner(peer):
 		_send(peer,key,self.read(key))

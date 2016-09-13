@@ -1,5 +1,6 @@
 extends Node
 
+var template={}
 var attrs={}
 var signals={}
 
@@ -18,6 +19,17 @@ remote func attr_is(from,key,value):
 		var signame="notify_%s" % key
 		attrs[key]=value
 		emit_signal(signame)
+
+func get_cg_template():
+	var signame="cg_template"
+	if !signals.has(signame):
+		add_user_signal(signame)
+		signals[signame]=true
+	rpc_id(1,"get_cg_template",_peer)
+remote func cg_template(from,cg_form):
+	if from==1:
+		template=cg_form
+		emit_signal("cg_template")
 
 func _ready():
 	pass

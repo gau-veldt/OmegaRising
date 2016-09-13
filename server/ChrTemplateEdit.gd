@@ -436,7 +436,7 @@ func convertGraph():
 				attr_name=attr.keys()[0]
 				attr_def=attr[attr_name]
 				theTemplate['Attributes'][attr_name]=attr_def
-	print(theTemplate.to_json())
+	print("chargen template: ",theTemplate.to_json())
 func convertAttribute(attr,blocks):
 	var cvt={}
 	var what=attr['from']

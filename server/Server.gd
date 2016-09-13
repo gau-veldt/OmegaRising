@@ -153,3 +153,18 @@ func logout_on_drop(id):
 			var handle=each.read("handle")
 			var user=each.read("username")
 			logMessage("%s@%s logged out due to dropped client %d." % [handle,user,id])
+
+var hooks={}
+func has_hook(name):
+	return hooks.has(name)
+func set_hook(name,ob,method):
+	hooks[name]={'node':ob,'method':method}
+	print("hook %s set to [%s].%s" % [name,ob.get_name(),method])
+func remove_hook(name):
+	if hooks.has(name):
+		hooks.erase(name)
+func call_hook(name,arglist):
+	if hooks.has(name):
+		var hook=hooks[name]
+		print("call hook %s" % name)
+		hook['node'].callv(hook['method'],arglist)
