@@ -1,0 +1,98 @@
+[gd_scene load_steps=3 format=1]
+
+[ext_resource path="res://MenuScreen.gd" type="Script" id=1]
+[ext_resource path="res://title.png" type="Texture" id=2]
+
+[node name="MenuScreen" type="Node2D"]
+
+script/script = ExtResource( 1 )
+
+[node name="View3D" type="Viewport" parent="."]
+
+rect = Rect2( 0, 0, 1280, 720 )
+own_world = false
+world = null
+transparent_bg = false
+render_target/enabled = true
+render_target/v_flip = false
+render_target/clear_on_new_frame = true
+render_target/filter = false
+render_target/gen_mipmaps = false
+render_target/update_mode = 2
+audio_listener/enable_2d = false
+audio_listener/enable_3d = false
+physics/object_picking = false
+gui/disable_input = false
+
+[node name="Panner" type="Spatial" parent="View3D"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="View3D/Panner"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 0.96159, -0.189154, 0.198908, 0, 0.724651, 0.689116, -0.274488, -0.662647, 0.696818, 0.309502, 6.84799, 10.2392 )
+layers = 1
+params/enabled = true
+params/editor_only = false
+params/bake_mode = 0
+params/energy = 1.0
+colors/diffuse = Color( 1, 1, 1, 1 )
+colors/specular = Color( 1, 1, 1, 1 )
+shadow/shadow = false
+shadow/darkening = 0.0
+shadow/z_offset = 0.05
+shadow/z_slope_scale = 0.0
+shadow/esm_multiplier = 60.0
+shadow/blur_passes = 1.0
+projector = null
+operator = 0
+shadow/mode = 0
+shadow/max_distance = 0.0
+shadow/split_weight = 0.5
+shadow/zoffset_scale = 2.0
+
+[node name="Camera" type="Camera" parent="View3D/Panner"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 0.835935, -0.120837, 0.535361, -0.237848, 0.799336, 0.551806, -0.494612, -0.588608, 0.639453, 1.69724, 1.64458, 2.10187 )
+projection = 0
+fov = 60.0
+near = 0.1
+far = 100.0
+keep_aspect = 1
+current = true
+visible_layers = 1048575
+environment = null
+h_offset = 0.0
+v_offset = 0.0
+
+[node name="TestCube" type="TestCube" parent="View3D/Panner"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+layers = 1
+geometry/visible = true
+geometry/material_override = null
+geometry/cast_shadow = 1
+geometry/receive_shadows = true
+geometry/range_begin = 0.0
+geometry/range_end = 0.0
+geometry/extra_cull_margin = 0.0
+geometry/billboard = false
+geometry/billboard_y = false
+geometry/depth_scale = false
+geometry/visible_in_all_rooms = false
+geometry/use_baked_light = false
+geometry/baked_light_tex_id = 0
+
+[node name="ViewportSprite" type="ViewportSprite" parent="."]
+
+viewport = NodePath("../View3D")
+centered = false
+
+[node name="Title" type="Sprite" parent="."]
+
+texture = ExtResource( 2 )
+centered = false
+
+

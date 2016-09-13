@@ -40,6 +40,7 @@ margin/top = 60.0
 margin/right = 432.0
 margin/bottom = 84.0
 placeholder/alpha = 0.6
+expand_to_len = false
 focus_mode = 2
 caret/caret_blink = false
 caret/caret_blink_speed = 0.65
@@ -71,6 +72,7 @@ margin/right = 433.0
 margin/bottom = 148.0
 placeholder/alpha = 0.6
 secret = true
+expand_to_len = false
 focus_mode = 2
 caret/caret_blink = false
 caret/caret_blink_speed = 0.65
@@ -95,6 +97,22 @@ enabled_focus_mode = 2
 shortcut = null
 text = "Log In"
 flat = false
+
+[node name="txt_ver" type="Label" parent="."]
+
+rect/min_size = Vector2( 620, 0 )
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 6.0
+margin/top = 251.0
+margin/right = 46.0
+margin/bottom = 265.0
+custom_colors/font_color = Color( 0.38269, 0.704589, 0.816406, 1 )
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
 
 [connection signal="text_changed" from="user" to="." method="validateUser"]
 

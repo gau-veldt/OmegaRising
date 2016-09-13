@@ -1,0 +1,138 @@
+[gd_scene load_steps=2 format=1]
+
+[ext_resource path="res://MainMenu.gd" type="Script" id=1]
+
+[node name="MainMenu" type="Panel"]
+
+visibility/self_opacity = 0.34
+anchor/left = 3
+anchor/top = 3
+anchor/right = 3
+anchor/bottom = 3
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 128.0
+margin/top = -27.0
+margin/right = -128.0
+margin/bottom = -219.0
+script/script = ExtResource( 1 )
+
+[node name="Label" type="Label" parent="."]
+
+anchor/left = 3
+anchor/right = 3
+rect/scale = Vector2( 2, 2 )
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 100.0
+margin/top = 10.0
+margin/right = 0.0
+margin/bottom = 24.0
+text = "Main Menu"
+align = 1
+valign = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
+
+[node name="menu" type="VBoxContainer" parent="."]
+
+anchor/left = 3
+anchor/right = 3
+focus/ignore_mouse = false
+focus/stop_mouse = false
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 100.0
+margin/top = 48.0
+margin/right = -100.0
+margin/bottom = 172.0
+alignment = 0
+
+[node name="Play" type="Button" parent="menu"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 200.0
+margin/bottom = 20.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Enter World"
+flat = false
+
+[node name="CharacterSelect" type="OptionButton" parent="menu"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 24.0
+margin/right = 200.0
+margin/bottom = 44.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+flat = false
+align = 0
+selected = -1
+items = [  ]
+
+[node name="Create" type="Button" parent="menu"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 48.0
+margin/right = 200.0
+margin/bottom = 68.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Create Character"
+flat = false
+
+[node name="Account" type="Button" parent="menu"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 72.0
+margin/right = 200.0
+margin/bottom = 92.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Account Settings"
+flat = false
+
+[node name="Quit" type="Button" parent="menu"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 96.0
+margin/right = 200.0
+margin/bottom = 116.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Quit"
+flat = false
+
+

@@ -3,9 +3,11 @@ extends Panel
 
 signal DoLogin(username,password)
 
+onready var client=get_node("/root/Peer")
 onready var edtUser=get_node("./user")
 onready var edtPass=get_node("./pass")
 onready var btnLogin=get_node("./login")
+onready var txtVer=get_node("./txt_ver")
 
 var pass_ok=false
 var user_ok=false
@@ -35,6 +37,8 @@ func doLogin():
 	emit_signal("DoLogin",edtUser.get_text(),edtPass.get_text())
 
 func _ready():
+	var ver=client.client_version()['string']
+	txtVer.set_text("Omega Rising client (Version %s)" % ver)
 	validatePassword("")
 	validateUser("")
 	set_process(true)

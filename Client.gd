@@ -28,6 +28,7 @@ var index_bytype={}
 
 # private (client) objects
 var resources={}
+onready var vp=get_node("/root")
 onready var bgm=get_node("/root/Peer/bgm")
 onready var login_timer=get_node("/root/Peer/LoginTimer")
 onready var hud=get_node("/root/Peer/View2D/HUD")
@@ -35,7 +36,19 @@ onready var dlgLogin=hud.get_node("Login")
 onready var dlgAuth=hud.get_node("LoginStatus")
 onready var dlgMotd=hud.get_node("motd_bg")
 onready var motd=dlgMotd.get_node("motd")
+onready var candy=get_node("/root/Peer/View2D/EyeCandy")
 var userAcct=null
+onready var mmFactory=load("MainMenu.tscn")
+var dlgMainMenu=null
+
+func client_version():
+	var ver={}
+	ver['major']=0
+	ver['minor']=1
+	ver['rev']=0
+	ver['state']="pre-alpha"
+	ver['string']="%d.%d.%03d-%s" % [ver['major'],ver['minor'],ver['rev'],ver['state']]
+	return ver
 
 func init_client_resources():
 	resources['bgm/lobby']=load("user://bgm/lobby.ogg")
@@ -64,9 +77,23 @@ func onChangeMOTD(msg):
 	motd.set_bbcode(msg)
 
 func fade_quit():
+	if dlgMainMenu!=null:
+		dlgMainMenu.queue_free()
+		dlgMainMenu=null
+	segue_fade_candy=true
 	if segue_cur!=null:
 		change_bgm()
 		yield(self,"SongChanged")
+	set_process(false)
+	login_timer.stop()
+	clear_gobs()
+	if server!=null:
+		server.queue_free()
+		server=null
+	if client!=null:
+		client.queue_free()
+		client=null
+	get_tree().set_network_peer(null)
 	get_tree().quit()
 
 func _notification(what):
@@ -86,11 +113,16 @@ func onConnFail():
 	fade_quit()
 
 func onDisconnect():
+	if dlgMainMenu!=null:
+		dlgMainMenu.queue_free()
+		dlgMainMenu=null
 	userAcct=null
 	login_timer.stop()
 	clear_gobs()
 	server.queue_free()
+	server=null
 	client.queue_free()
+	client=null
 	get_tree().set_network_peer(null)
 	window_status("Disconnected")
 	change_bgm(resources['bgm/lobby'])
@@ -107,6 +139,7 @@ export var segue_rate=0.5
 var segue=null
 var segue_cur=null
 var segue_pos=0
+var segue_fade_candy=false
 var fullscreen=false
 var debounce_F11
 var elapsed=0
@@ -117,14 +150,18 @@ func _process(delta):
 	#####################
 	#  BGM transitions  #
 	#####################
+	if candy.is_hidden():
+		segue_fade_candy=false
 	if segue==segue_cur:
 		segue=null
+		segue_candy()
 	if segue!=null:
 		if segue_cur==null:
 			segue_cur=segue
 			if segue_cur==bgm_silence:
 				segue_cur=null
 			segue=null
+			segue_candy()
 			segue_pos=0
 			bgm.set_stream(segue_cur)
 			if segue_cur!=null:
@@ -138,6 +175,7 @@ func _process(delta):
 				if segue_cur==bgm_silence:
 					segue_cur=null
 				segue=null
+				segue_candy()
 				segue_pos=0
 				bgm.set_stream(segue_cur)
 				if segue_cur!=null:
@@ -147,6 +185,8 @@ func _process(delta):
 				emit_signal("SongChanged",segue_cur)
 			else:
 				var vol=1.0-(min(segue_pos,1.5)/segue_rate)
+				if segue_fade_candy:
+					candy.set_opacity(vol)
 				bgm.set_volume(vol)
 				segue_pos+=delta
 
@@ -159,6 +199,12 @@ func _process(delta):
 			OS.set_window_fullscreen(fullscreen)
 	if !Input.is_action_pressed("fullscreen_toggle") and debounce_F11:
 		debounce_F11=false
+
+var segue_hide_candy=false
+func segue_candy():
+	if segue_hide_candy:
+		candy.hide()
+		segue_fade_candy=false
 
 var req_user
 func requestLogin(username,password):
@@ -200,6 +246,10 @@ func onLoginOK(acctID):
 	userAcct.get_cg_template()
 	yield(userAcct,"cg_template")
 	print("character template: %s" % userAcct.template.to_json())
+	dlgMainMenu=mmFactory.instance()
+	dlgMainMenu.set_name("MainMenu")
+	candy.set_hidden(false)
+	hud.add_child(dlgMainMenu)
 
 var bgm_silence=AudioStreamOGGVorbis.new()
 func change_bgm(song=null):
@@ -218,6 +268,7 @@ func _ready():
 	populate_index()
 	window_status()
 	init_client_resources()
+	VisualServer.set_default_clear_color(Color("4c4c4c"))
 
 	get_tree().connect("connected_to_server",self,"onConnect")
 	get_tree().connect("connection_failed",self,"onConnFail")
@@ -234,6 +285,7 @@ func _ready():
 	dlgLogin.nologin(true)
 	upstream.create_client(server_addr,server_port)
 	get_tree().set_network_peer(upstream)
+	candy.hide()
 	dlgAuth.hide()
 	dlgMotd.hide()
 	dlgLogin.set_hidden(false)
