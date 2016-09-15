@@ -33,3 +33,17 @@ remote func cg_template(from,cg_form):
 
 func _ready():
 	pass
+
+var charList=null
+signal CharacterListChanged(list)
+func get_character_list():
+	if charList==null:
+		self.read("characters")
+		yield(self,"notify_characters")
+		charList=attrs['characters']
+	emit_signal("CharacterListChanged",charList)
+remote func charlist_changed(from,newList):
+	if from==1:
+		charList=newList
+		attrs['characters']=newList
+		emit_signal("CharacterListChanged",charList)

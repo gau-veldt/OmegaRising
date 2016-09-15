@@ -446,6 +446,9 @@ func convertAttribute(attr,blocks):
 	cvt[name]={'type':kind}
 	if kind in ['ChooseOne','ChooseMulti']:
 		cvt[name]['options']=convertOptions(what,blocks)
+	if kind in ['IntRange','FloatRange']:
+		cvt[name]['min']=float(who.get_node("min").get_text())
+		cvt[name]['max']=float(who.get_node("max").get_text())
 	return cvt
 func convertOptions(attr,blocks):
 	var cvt=[]

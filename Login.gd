@@ -16,6 +16,11 @@ var nologin=false
 func nologin(st):
 	nologin=st
 
+func defaultUser(user):
+	edtUser.set_text(user)
+	edtPass.grab_focus()
+	validateUser(user)
+
 func validatePassword(txt):
 	pass_ok=false
 	if txt.length()>8:
@@ -39,6 +44,7 @@ func doLogin():
 func _ready():
 	var ver=client.client_version()['string']
 	txtVer.set_text("Omega Rising client (Version %s)" % ver)
+	edtUser.grab_focus()
 	validatePassword("")
 	validateUser("")
 	set_process(true)

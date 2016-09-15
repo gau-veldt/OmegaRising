@@ -1,0 +1,10 @@
+[gd_resource type="SampleLibrary" load_steps=3 format=1]
+
+[ext_resource path="res://ui/[PD]Pling-KevanGC.smp" type="Sample" id=1]
+[ext_resource path="res://ui/[PD]Computer Error Alert.smp" type="Sample" id=2]
+
+[resource]
+
+samples/choice = { "db":-9.0, "pitch":1.0, "sample":ExtResource( 1 ) }
+samples/error = { "db":-9.0, "pitch":1.0, "sample":ExtResource( 2 ) }
+

@@ -3,6 +3,7 @@ extends Node
 
 signal SongChanged(song)
 signal ScreenShot(img)
+signal Quitting()
 
 var GameName="Omega Rising"
 
@@ -40,7 +41,6 @@ onready var motd=dlgMotd.get_node("motd")
 onready var candy=get_node("/root/Peer/View2D/EyeCandy")
 var userAcct=null
 onready var mmFactory=load("MainMenu.tscn")
-var dlgMainMenu=null
 
 func client_version():
 	var ver={}
@@ -51,9 +51,12 @@ func client_version():
 	ver['string']="%d.%d.%03d-%s" % [ver['major'],ver['minor'],ver['rev'],ver['state']]
 	return ver
 
+onready var uiSound=get_node("uiSounds")
 func init_client_resources():
 	resources['bgm/lobby']=load("user://bgm/lobby.ogg")
 	resources['bgm/menu']=load("user://bgm/menu.ogg")
+func ui_sound(name):
+	uiSound.play(name,true)
 
 func populate_index():
 	var types=index.get_children()
@@ -77,10 +80,10 @@ func onConnect():
 func onChangeMOTD(msg):
 	motd.set_bbcode(msg)
 
+func emit_quit():
+	emit_signal("Quitting")
+	fade_quit()
 func fade_quit():
-	if dlgMainMenu!=null:
-		dlgMainMenu.queue_free()
-		dlgMainMenu=null
 	segue_fade_candy=true
 	if segue_cur!=null:
 		change_bgm()
@@ -99,9 +102,11 @@ func fade_quit():
 
 func _notification(what):
 	if what==MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		emit_signal("Quitting")
 		fade_quit()
 
 func onConnFail():
+	emit_signal("Quitting")
 	change_bgm(resources['bgm/lobby'])
 	window_status("Failed to Connect")
 	dlgLogin.hide()
@@ -114,9 +119,7 @@ func onConnFail():
 	fade_quit()
 
 func onDisconnect():
-	if dlgMainMenu!=null:
-		dlgMainMenu.queue_free()
-		dlgMainMenu=null
+	emit_signal("Quitting")
 	userAcct=null
 	login_timer.stop()
 	clear_gobs()
@@ -126,6 +129,7 @@ func onDisconnect():
 	client=null
 	get_tree().set_network_peer(null)
 	window_status("Disconnected")
+	segue_fade_candy=true
 	change_bgm(resources['bgm/lobby'])
 	dlgLogin.hide()
 	dlgMotd.hide()
@@ -218,11 +222,9 @@ func _process(delta):
 	if !Input.is_action_pressed("screen_cap") and debounce_F10:
 		debounce_F10=false
 
-var segue_hide_candy=false
 func segue_candy():
-	if segue_hide_candy:
-		candy.hide()
-		segue_fade_candy=false
+	candy.hide()
+	segue_fade_candy=false
 
 var req_user
 func requestLogin(username,password):
@@ -250,6 +252,8 @@ func onLoginFail(code,why):
 	dlgLogin.show()
 
 func onLoginOK(acctID):
+	cfgFile.set_value("Account","username",req_user)
+	saveConfig()
 	change_bgm(resources['bgm/menu'])
 	yield(self,"SongChanged")
 	window_status(" %s (logged in)" % req_user)
@@ -264,7 +268,7 @@ func onLoginOK(acctID):
 	userAcct.get_cg_template()
 	yield(userAcct,"cg_template")
 	print("character template: %s" % userAcct.template.to_json())
-	dlgMainMenu=mmFactory.instance()
+	var dlgMainMenu=mmFactory.instance()
 	dlgMainMenu.set_name("MainMenu")
 	candy.set_hidden(false)
 	hud.add_child(dlgMainMenu)
@@ -282,6 +286,8 @@ func onNewSong(s):
 	else:
 		print("bgm silenced")
 
+var cfgFile=ConfigFile.new()
+var cfgUser=""
 func _ready():
 	var dir=Directory.new()
 	if !dir.dir_exists("user://screenshots"):
@@ -291,7 +297,7 @@ func _ready():
 	populate_index()
 	window_status()
 	init_client_resources()
-	VisualServer.set_default_clear_color(Color("4c4c4c"))
+	cfgFile.load("user://client.ini")
 
 	get_tree().connect("connected_to_server",self,"onConnect")
 	get_tree().connect("connection_failed",self,"onConnFail")
@@ -300,12 +306,17 @@ func _ready():
 	connect("SongChanged",self,"onNewSong")
 	change_bgm(resources['bgm/lobby'])
 
+	VisualServer.set_default_clear_color(Color("4c4c4c"))
 	server=SProxy.instance()
 	server.set_name(str(SERVER_ID))
 	lobby.add_child(server)
 	upstream=NetworkedMultiplayerENet.new()
 	window_status("Connecting")
 	dlgLogin.nologin(true)
+	if cfgFile.has_section_key("Account","username"):
+		cfgUser=cfgFile.get_value("Account","username","")
+		if cfgUser!="":
+			dlgLogin.defaultUser(cfgUser)
 	upstream.create_client(server_addr,server_port)
 	get_tree().set_network_peer(upstream)
 	candy.hide()
@@ -315,6 +326,10 @@ func _ready():
 
 	set_process(true)
 	get_tree().set_auto_accept_quit(false)
+	saveConfig()
+
+func saveConfig():
+	cfgFile.save("user://client.ini")
 
 func window_status(msg=""):
 	var title=GameName
@@ -333,4 +348,12 @@ func save_screen(img):
 		[OS.get_unix_time(),OS.get_ticks_msec()%1000]
 	img.save_png(fname)
 
-	print(fname)
+var debounce_cancel=false
+func test_cancel():
+	if Input.is_action_pressed("ui_cancel") and !debounce_cancel:
+		debounce_cancel=true
+	if !Input.is_action_pressed("ui_cancel") and debounce_cancel:
+		debounce_cancel=false
+		return true
+	return false
+
