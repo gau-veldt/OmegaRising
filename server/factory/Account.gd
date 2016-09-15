@@ -22,7 +22,10 @@ func _is_owner(peer):
 func logout():
 	_session=null
 
+#
 # Character creation/management
+#
+signal charlist_changed(list)
 onready var cg=get_node("/root/Peer/Tabber/Character Template")
 remote func get_cg_template(peer):
 	var cgProc="cg_template"
@@ -37,6 +40,48 @@ remote func get_cg_template(peer):
 		_send_var(peer,cgProc,cg_template)
 func _send_var(dest_peer,rpc_name,data):
 	rpc_id(dest_peer,rpc_name,1,data)
+
+# Character creation request
+remote func request_character_create(peer,form):
+	var rc=[-1,"Not imeplemented"]
+	var cg_template=cg.getTemplate()
+	var cgProc="request_character_create"
+	if _is_owner(peer):
+		var cg_template=cg.getTemplate()
+		if charform_validate(form,cg_template,rc):
+			rc[0]=0
+			rc[1]="Successful."
+			if server.has_hook(cgProc):
+				server.call_hook(cgProc,[self,form,cg_template,rc])
+			if rc[0]==0:	# no validation error from external script
+				# check for duplicate name
+				var dupe=false
+				var charIdx=persist.get_gob_index('Player')
+				var chars=charIdx.get_children()
+				var name
+				for char in chars:
+					if char.read('name')==form['CharacterName']:
+						dupe=true
+						break
+				if dupe:
+					rc[0]=6
+					rc[1]="Duplicate character name %s" % form['CharacterName']
+				else:
+					var PC=persist.spawn('Player')
+					var props=PC.read('props')
+					for key in form:
+						if key!="CharacterName":
+							props[key]=form[key]
+						else:
+							PC.write('name',form[key])
+					PC.write('props',props)
+					var pcList=read('characters')
+					pcList[form['CharacterName']]=PC.get_name()
+					write('characters',pcList)
+					emit_signal("charlist_changed",pcList)
+					rpc_id(peer,"charlist_changed",1,pcList)
+
+		rpc_id(peer,"creation_response",1,rc)
 
 # Account attribute access
 remote func get_attr(peer,key):
@@ -133,9 +178,77 @@ func _spawn_Account():
 	write("email","")
 	write("email_vfy",false)
 	write("password","$")
-	write("characters",[])
+	write("characters",{})
 	write("allowed_ip",[])
 	write("socials",[])
 
 func _spawn():
 	_spawn_Account()
+
+func charform_validate(form,template,rc):
+	var attrs=template['Attributes']
+	for attr in form:
+		# ensure form has no extraneous attributes
+		if !attrs.has(attr):
+			rc[0]=1
+			rc[1]="Illegal attribute %s" % attr
+			return false
+	for attr in attrs:
+		# ensure form has all required attributes before attempting to process
+		if !form.has(attr):
+			rc[0]=2
+			rc[1]="Attribute %s missing" % attr
+			return false
+	for attr in attrs:
+		var def=attrs[attr]
+		var type=def['type']
+		if type in ['String']:
+			if form[attr]=="":
+				rc[0]=3
+				rc[1]="Attribute %s is blank" % attr
+				return false
+		if type in ["IntRange","FloatRange"]:
+			var num
+			if type=="IntRange":
+				num=int(form[attr])
+			else:
+				num=float(form[attr])
+			if num<def['min'] or num>def['max']:
+				rc[0]=4
+				rc[1]="Attribute %s: %d not in range [%s,%s]" % [attr,num,def['min'],def['max']]
+				return false
+		if type in ["ChooseOne","ChooseMulti"]:
+			var flist
+			if type=="ChooseOne":
+				flist=[form[attr]]
+			else:
+				flist=form[attr]
+			var valid=[]
+			for opt in def['options']:
+				if opt.has('always'):
+					valid.append(opt['always'])
+				if opt.has('when'):
+					var passed=true
+					for each in opt['when']:
+						var test=false
+						var tAttr=each['attr']
+						var tOpt=each['option']
+						var tInv=each['not']
+						test=(form[tAttr]==tOpt)
+						if tInv: test=(!test)
+						passed=passed and test
+					if opt.has('Include'):
+						for incl in opt['Include']:
+							if passed:
+								valid.append(incl)
+					if opt.has('Exclude'):
+						for excl in opt['Exclude']:
+							if !passed:
+								valid.append(excl)
+			for opt in flist:
+				if not opt in valid:
+					rc[0]=5
+					rc[1]="Attribute %s has invalid option %s" % [attr,opt]
+					return false
+	return true
+

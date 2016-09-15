@@ -29,13 +29,24 @@ func rand_str(sz):
 		rslt+=_ascii[int(rand_range(0,94))]
 	return rslt
 
+var preLog=null
 func logMessage(msg):
 	var now=OS.get_time()
-	var buf=serverLog.get_text()
-	buf+="[%08x:%03d] " % [OS.get_unix_time(),OS.get_ticks_msec()%1000]
-	buf+=msg+"\n"
-	serverLog.set_text(buf)
-	serverLog.cursor_set_line(serverLog.get_line_count())
+	var buf
+	if serverLog:
+		buf=serverLog.get_text()
+		if preLog!=null:
+			buf+=preLog
+			preLog=null
+		buf+="[%08x:%03d] " % [OS.get_unix_time(),OS.get_ticks_msec()%1000]
+		buf+=msg+"\n"
+		serverLog.set_text(buf)
+		serverLog.cursor_set_line(serverLog.get_line_count())
+	else:
+		if preLog==null: preLog=""
+		buf="[%08x:%03d] " % [OS.get_unix_time(),OS.get_ticks_msec()%1000]
+		buf+=msg+"\n"
+		preLog+=buf
 
 var menuDispatch={
 	"Server": {

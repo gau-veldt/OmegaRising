@@ -1,5 +1,6 @@
 extends Panel
 
+onready var MM=get_parent().get_node("MainMenu")
 onready var client=get_node("/root/Peer")
 onready var userAcct=client.userAcct
 onready var template=userAcct.template
@@ -12,9 +13,56 @@ onready var modelView=modelRoot.get_node("viewer")
 onready var model=modelView.get_node("character")
 onready var cam=modelView.get_node("Camera")
 
+var ColorForBad=Color(.5,0,0)
+
 func onQuitting():
 	hide()
+	MM.show()
 	queue_free()
+func onDismiss():
+	client.ui_sound('error')
+	onQuitting()
+
+func onDoCreate():
+	var par=get_parent()
+	hide()
+	var st=client.dlgAuth
+	st.show()
+	st.set_caption("Create Character")
+	st.set_message("Requesting character creation.")
+	st.set_dismiss(false)
+	var createReq={}
+	for attr in chrControls:
+		var ctl=chrControls[attr]
+		var type=template['Attributes'][attr]['type']
+		if type in ['String']:
+			createReq[attr]=ctl.get_text()
+		if type in ['IntRange','FloatRange']:
+			createReq[attr]=ctl.get_value()
+		if type in ['ChooseOne']:
+			createReq[attr]=ctl.get_item_text(ctl.get_selected())
+		if type in ['ChooseMulti']:
+			createReq[attr]=[]
+			var selected=ctl.get_selected_items()
+			for sel in selected:
+				createReq[attr].append(ctl.get_item_text(sel))
+	userAcct.request_creation(createReq)
+	yield(userAcct,"creation_response")
+	var rc=userAcct.create_status
+	if rc[0]!=0:
+		client.ui_sound('error')
+		st.set_caption("Creation Failed")
+		st.set_message(rc[1])
+		st.set_dismiss(true,"Cancel")
+		yield(st,"Dismiss")
+		st.set_dismiss(false)
+		st.hide()
+		show()
+	else:
+		st.set_dismiss(false)
+		st.hide()
+		client.ui_sound('choice')
+		onQuitting()
 
 var chrControls={}
 var btnCreateMe
@@ -99,12 +147,15 @@ func _ready():
 	btnCreateMe.set_name("@DoCreate@")
 	btnCreateMe.set_text("Create Character")
 	createList.add_child(btnCreateMe)
+	btnCreateMe.connect("pressed",self,"onDoCreate")
 	btnCancel=Button.new()
 	btnCancel.set_name("@Cancel@")
 	btnCancel.set_text("Cancel")
 	createList.add_child(btnCancel)
+	btnCancel.connect("pressed",self,"onDismiss")
 	set_fixed_process(true)
 	set_process(true)
+	MM.hide()
 
 func _process(delta):
 	var props
@@ -112,9 +163,21 @@ func _process(delta):
 	var opts
 	var good=-1
 	var bad=false
+	var notValid=false
 	for name in template['Attributes']:
 		props=template['Attributes'][name]
 		type=props['type']
+		if type in ["String"]:
+			var ctl=chrControls[name]
+			var pos=ctl.get_index()
+			var lbl=ctl.get_parent().get_child(pos-1)
+			var invalid=chrControls[name].get_text()==""
+			notValid=notValid or invalid
+			if invalid:
+				lbl.set("custom_colors/font_color",ColorForBad)
+			else:
+				lbl.set("custom_colors/font_color",Color(1,1,1))
+			
 		if type in ["ChooseOne","ChooseMulti"]:
 			opts=props['options']
 			var idx=0
@@ -143,6 +206,7 @@ func _process(delta):
 						idx+=1
 			if bad:
 				if type=='ChooseOne': chrControls[name].select(good)
+	btnCreateMe.set_disabled(notValid)
 
 func eval_tests(tests):
 	var ok=true
@@ -168,9 +232,7 @@ var rot_spd=.5
 func _fixed_process(delta):
 	modelCtl.set_texture(modelRoot.get_render_target_texture())
 	if client.test_cancel():
-		client.ui_sound('error')
-		hide()
-		queue_free()
+		onDismiss()
 	if turnCW.is_pressed():
 		yrot-=((360.0*rot_spd)*delta)
 	if turnCCW.is_pressed():

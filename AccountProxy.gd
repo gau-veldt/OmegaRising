@@ -31,6 +31,18 @@ remote func cg_template(from,cg_form):
 		template=cg_form
 		emit_signal("cg_template")
 
+var create_status
+remote func request_creation(form):
+	var signame="creation_response"
+	if !signals.has(signame):
+		add_user_signal(signame)
+		signals[signame]=true
+	rpc_id(1,"request_character_create",_peer,form)
+remote func creation_response(from,rc):
+	if from==1:
+		create_status=rc
+		emit_signal("creation_response")
+
 func _ready():
 	pass
 
