@@ -59,3 +59,17 @@ remote func charlist_changed(from,newList):
 		charList=newList
 		attrs['characters']=newList
 		emit_signal("CharacterListChanged",charList)
+
+onready var gobIndex=get_node("/root/Peer/index")
+onready var playerIdx=gobIndex.get_node("Player")
+var charFactory=load("PlayerProxy.tscn")
+func joinCharacter(who):
+	if who in attrs['characters']:
+		var charId
+		charId=attrs['characters'][who]
+		var charPxy=charFactory.instance()
+		charPxy.set_name(charId)
+		charPxy.attrs['name']=who
+		playerIdx.add_child(charPxy)
+		return charPxy
+	return null

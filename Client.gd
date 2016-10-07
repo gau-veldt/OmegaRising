@@ -55,6 +55,7 @@ onready var uiSound=get_node("uiSounds")
 func init_client_resources():
 	resources['bgm/lobby']=load("user://bgm/lobby.ogg")
 	resources['bgm/menu']=load("user://bgm/menu.ogg")
+	resources['bgm/world_test']=load("user://bgm/ronfaure.ogg")
 func ui_sound(name):
 	uiSound.play(name,true)
 
@@ -275,6 +276,11 @@ func onLoginOK(acctID):
 
 var bgm_silence=AudioStreamOGGVorbis.new()
 func change_bgm(song=null):
+	if typeof(song)==typeof(""):
+		if resources.has(song):
+			song=resources[song]
+		else:
+			song=null
 	if song!=null:
 		segue=song
 	else:
@@ -338,10 +344,13 @@ func window_status(msg=""):
 	OS.set_window_title(title)
 
 func clear_gobs():
+	var mangle=-1
 	for group in index_bytype.keys():
 		var childs=index_bytype[group].get_children()
 		for each in childs:
+			each.set_name("@@deleted@%d@@" % mangle)
 			each.queue_free()
+			mangle-=1
 
 func save_screen(img):
 	var fname="user://screenshots/screenshot_%08x%03d.png" % \

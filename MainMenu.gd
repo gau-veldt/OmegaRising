@@ -17,6 +17,7 @@ var dlgClient=load("ClientOpts.tscn")
 var useChar=""
 
 func _process(delta):
+	useChar=selChar.get_text()
 	btnPlay.set_disabled(useChar=="")
 
 func onQuit():
@@ -32,6 +33,7 @@ func _ready():
 	btnCreate.connect("pressed",self,"onCreateCharacter")
 	btnAccount.connect("pressed",self,"onAccountSettings")
 	btnClient.connect("pressed",self,"onClientSettings")
+	btnPlay.connect("pressed",self,"onEnterGame")
 	userAcct.connect("CharacterListChanged",self,"onUpdateCharList")
 	userAcct.get_character_list()
 	set_process(true)
@@ -61,3 +63,19 @@ func onClientSettings():
 	client.ui_sound('choice')
 	var dlg=dlgClient.instance()
 	get_parent().add_child(dlg)
+
+
+var gwFactory=load("GameWorld.tscn")
+func onEnterGame():
+	var charName=selChar.get_text()
+	if charName!="":
+		client.candy.hide()
+		hide()
+		var gw=gwFactory.instance()
+		gw.set_name("session: %s" % charName)
+		gw.main_menu=self
+		gw.who=charName
+		client.add_child(gw)
+		var tgt=userAcct.joinCharacter(charName)
+		gw.call_deferred("changeTarget",tgt)
+

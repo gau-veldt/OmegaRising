@@ -61,8 +61,15 @@ func _write_Mob(key,val):
 	else:
 		return baserc
 
+var _mob_init
 func _ready():
-	pass
+	if !_mob_init:
+		_mob_init=true
+		var defModel=TestCube.new()
+		defModel.set_name("model")
+		defModel.set_scale(Vector3(.5,.5,.5))
+		defModel.set_translation(Vector3(0,.5,0))
+		self.add_child(defModel)
 
 func _spawn_Mob():
 	_spawn_GOB()

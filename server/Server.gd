@@ -13,6 +13,7 @@ var idle_timeout=1440
 var host=NetworkedMultiplayerENet.new()
 
 onready var persist=get_node("/root/persist")
+onready var uiRoot=get_node("Tabber")
 onready var serverLog=get_node("Tabber/Log")
 onready var quitDlg=get_node("QuitQuestion")
 onready var active=get_node("/root/lobby")
@@ -84,11 +85,23 @@ var oldAcctCount=-1
 var curAcctCount
 
 onready var acct_idx=persist.get_gob_index('Account')
+var _hideUI_debounce=false
+var _hideUI=false
 func _process(delta):
 	# update world time
 	worldTime+=delta
 	if worldTime>=1440:
 		worldTime-=1440
+
+	# UI hide toggle (allows viewing world)
+	if Input.is_action_pressed("hide_ui_toggle") and !_hideUI_debounce:
+			_hideUI_debounce=true
+			_hideUI=!_hideUI
+			ToggleUI(_hideUI)
+	if !Input.is_action_pressed("hide_ui_toggle") and _hideUI_debounce:
+		_hideUI_debounce=false
+	if GodCam!=null:
+		MoveGodCam(delta)
 
 	# update server account view
 	curAcctCount=acct_idx.get_children().size()
@@ -179,3 +192,54 @@ func call_hook(name,arglist):
 		var hook=hooks[name]
 		print("call hook %s" % name)
 		hook['node'].callv(hook['method'],arglist)
+
+var GodCam=null
+var GodPos=Vector3(0,1.5,4)
+var GodRot=Vector3(0,0,0)
+onready var env=get_node("env")
+func ToggleUI(hide):
+	uiRoot.set_hidden(hide)
+	if hide:
+		if GodCam==null:
+			var lig=OmniLight.new()
+			lig.set_color(Light.COLOR_DIFFUSE,Color(.75,.75,.75))
+			lig.set_color(Light.COLOR_SPECULAR,Color(1,1,1))
+			lig.set_parameter(Light.PARAM_RADIUS,8)
+			lig.set_parameter(Light.PARAM_ENERGY,1)
+			GodCam=Camera.new()
+			GodCam.add_child(lig)
+			add_child(GodCam)
+			GodCam.set_translation(GodPos)
+			GodCam.set_rotation(GodRot)
+			GodCam.make_current()
+	else:
+		if GodCam!=null:
+			GodCam.queue_free()
+			GodCam=null
+
+const rotSpd=90
+const movSpd=1
+const r2deg=180.0/PI
+const deg2r=PI/180.0
+func MoveGodCam(scale):
+	var updn=0
+	var hdg=0
+	if Input.is_action_pressed("godcam_lup"):
+		updn=-deg2r*rotSpd*scale
+	if Input.is_action_pressed("godcam_ldn"):
+		updn=deg2r*rotSpd*scale
+	if Input.is_action_pressed("godcam_lt"):
+		hdg=-deg2r*rotSpd*scale
+	if Input.is_action_pressed("godcam_rt"):
+		hdg=deg2r*rotSpd*scale
+	GodCam.rotate_x(updn)
+	GodCam.rotate_y(hdg)
+	GodRot=GodCam.get_rotation()
+	var mov=Vector3(0,0,0)
+	if Input.is_action_pressed("godcam_frwd"):
+		mov.z=-1
+	if Input.is_action_pressed("godcam_rvrs"):
+		mov.z=1
+	GodCam.translate(mov*movSpd*scale)
+	GodPos=GodCam.get_translation()
+

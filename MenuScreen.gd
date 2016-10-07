@@ -2,6 +2,7 @@ extends Node2D
 
 onready var view3d=get_node("View3D/Panner")
 onready var cube=view3d.get_node("TestCube")
+onready var cam=view3d.get_node("Camera")
 
 var angle=0.0
 var rpm=10
@@ -11,5 +12,9 @@ func _process(delta):
 	if angle<0.0: angle+=360
 	cube.set_rotation_deg(Vector3(0,angle,0))
 
+func regain():
+	cam.make_current()
+
 func _ready():
 	set_process(true)
+
