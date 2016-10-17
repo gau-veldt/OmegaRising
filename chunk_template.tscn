@@ -1,13 +1,12 @@
-[gd_scene load_steps=11 format=1]
+[gd_scene load_steps=10 format=1]
 
 [ext_resource path="res://chunk_template.gd" type="Script" id=1]
 [ext_resource path="res://terrain_shader.tres" type="Shader" id=2]
 [ext_resource path="res://btm_0_0.png" type="Texture" id=3]
-[ext_resource path="res://height_test.png" type="Texture" id=4]
-[ext_resource path="res://mix_0_0.png" type="Texture" id=5]
-[ext_resource path="res://mix_tiles.png" type="Texture" id=6]
-[ext_resource path="res://terrain_tiles.png" type="Texture" id=7]
-[ext_resource path="res://top_0_0.png" type="Texture" id=8]
+[ext_resource path="res://mix_0_0.png" type="Texture" id=4]
+[ext_resource path="res://mix_tiles.png" type="Texture" id=5]
+[ext_resource path="res://terrain_tiles.png" type="Texture" id=6]
+[ext_resource path="res://top_0_0.png" type="Texture" id=7]
 
 [sub_resource type="Mesh" id=1]
 
@@ -27,13 +26,12 @@ params/blend_mode = 0
 params/depth_draw = 1
 params/line_width = 1.76137e+19
 shader/shader = ExtResource( 2 )
-shader_param/heightMap = ExtResource( 4 )
-shader_param/vScale = 0.05
+shader_param/cellCount = null
 shader_param/btmTilemap = ExtResource( 3 )
-shader_param/topTilemap = ExtResource( 8 )
-shader_param/mixTilemap = ExtResource( 5 )
-shader_param/tileset = ExtResource( 7 )
-shader_param/mixset = ExtResource( 6 )
+shader_param/topTilemap = ExtResource( 7 )
+shader_param/mixTilemap = ExtResource( 4 )
+shader_param/tileset = ExtResource( 6 )
+shader_param/mixset = ExtResource( 5 )
 shader_param/tileSize = 128.0
 shader_param/tilesetWidth = 1024.0
 shader_param/tilesetHeight = 1024.0

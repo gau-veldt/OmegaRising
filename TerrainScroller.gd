@@ -7,6 +7,10 @@ var radius
 var diameter
 var csize
 var map={}
+var loadQueue=[]
+
+var tileSet=load("user://gfx/terrain_tiles.png")
+var mixSet=load("user://gfx/mix_tiles.png")
 
 var center=Vector2(0,0)
 
@@ -24,6 +28,25 @@ func moveTo(v3):
 	var zCell=int(v3.z/csize)
 	recenter(Vector2(xCell,zCell))
 
+var fs=File.new()
+func load_chunk(fnm,v2,x,z):
+	#print("load chunk: (",x,",",z,")")
+	var ob
+	if fs.file_exists(fnm):
+		ob=load(fnm).instance()
+		ob.tileSet=tileSet
+		ob.mixSet=mixSet
+	else:
+		ob=Spatial.new()
+	map[v2]=ob
+	if ob.get_translation()==Vector3(0,0,0):
+		ob.set_translation(Vector3(x*csize,0,z*csize))
+	ob.set_name("cell (%d,%d)"%[x,z])
+	add_child(ob)
+
+signal LoadBegin()
+signal LoadProgress(cur,last)
+signal LoadEnd()
 func recenter(newCtr):
 	if int(center.x)!=int(newCtr.x) or int(center.y)!=int(newCtr.y):
 		center=newCtr
@@ -49,15 +72,31 @@ func recenter(newCtr):
 				if !map.has(v2):
 					#fnm=base.plus_file("chunk_%d_%d.scn"%[x,z])
 					fnm=base.plus_file("chunk_%d_%d.scn"%[0,0])
-					if fs.file_exists(fnm):
-						ob=load(fnm).instance()
-					else:
-						ob=Spatial.new()
-					map[v2]=ob
-					if ob.get_translation()==Vector3(0,0,0):
-						ob.set_translation(Vector3(x*csize,0,z*csize))
-					ob.set_name("cell (%d,%d)"%[x,z])
-					add_child(ob)
+					loadQueue.append([fnm,v2,x,z])
+		loadCycle=true
+		loadHead=0
+		loadTail=loadQueue.size()
+		emit_signal("LoadBegin",loadTail)
+		set_process(true)
+
+var loadCycle=false
+var loadHead=0
+var loadTail=0
+var nextChk
+func _process(delta):
+	if loadCycle:
+		for slice in range(min(1,loadTail-loadHead)):
+			nextChk=loadQueue[0]
+			load_chunk(nextChk[0],nextChk[1],nextChk[2],nextChk[3])
+			loadQueue.pop_front()
+			emit_signal("LoadProgress",loadHead,loadTail-1)
+			loadHead+=1
+		if loadHead>=loadTail:
+			loadCycle=false
+			set_process(false)
+			loadHead=0
+			loadTail=0
+			emit_signal("LoadEnd")
 
 func _ready():
 	var cur=center
